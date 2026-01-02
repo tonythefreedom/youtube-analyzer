@@ -22,8 +22,9 @@ const getEnvValue = (key) => {
 
 const hash = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
-const authId = getEnvValue('VITE_AUTH_ID') || 'admin';
-const authPw = getEnvValue('VITE_AUTH_PW') || '1234';
+// [v3.3.2] 환경 변수 우선순위: 시스템 환경변수(CI) > .env 파일(Local) > 기본값
+const authId = process.env.VITE_AUTH_ID || getEnvValue('VITE_AUTH_ID') || 'admin';
+const authPw = process.env.VITE_AUTH_PW || getEnvValue('VITE_AUTH_PW') || '1234';
 
 const config = {
   idHash: hash(authId),
