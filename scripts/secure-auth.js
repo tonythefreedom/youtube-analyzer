@@ -22,17 +22,24 @@ const getEnvValue = (key) => {
 
 const hash = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
-// [v3.3.2] 환경 변수 우선순위: 시스템 환경변수(CI) > .env 파일(Local) > 기본값
-const authId = process.env.VITE_AUTH_ID || getEnvValue('VITE_AUTH_ID') || 'admin';
-const authPw = process.env.VITE_AUTH_PW || getEnvValue('VITE_AUTH_PW') || '1234';
+// [v3.3.6] 보안 강화: 환경 변수 출처 확인 및 우선순위 정립
+const ciId = process.env.VITE_AUTH_ID;
+const ciPw = process.env.VITE_AUTH_PW;
+const localId = getEnvValue('VITE_AUTH_ID');
+const localPw = getEnvValue('VITE_AUTH_PW');
+
+const authId = ciId || localId || 'admin';
+const authPw = ciPw || localPw || '1234';
 
 const config = {
   idHash: hash(authId),
   pwHash: hash(authPw),
-  updatedAt: new Date().toISOString()
+  updatedAt: new Date().toISOString(),
+  source: ciId ? 'github-secrets' : (localId ? 'local-env' : 'system-default')
 };
 
 const outputPath = path.join(__dirname, '../src/authConfig.json');
 fs.writeFileSync(outputPath, JSON.stringify(config, null, 2));
 
+console.log(`✅ [SECURITY] Auth source: ${config.source}`);
 console.log('✅ [SECURITY] Auth hashes updated successfully in src/authConfig.json');
