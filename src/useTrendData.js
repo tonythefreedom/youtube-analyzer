@@ -43,7 +43,14 @@ export const useTrendData = (selectedCountries) => {
   const [apiStatus, setApiStatus] = useState("idle");
 
   const fetchTrends = useCallback(async () => {
-    if (!YOUTUBE_API_KEY) return;
+    // [v3.3.7] API 키가 없으면 시뮬레이션 모드로 강제 전환하여 앱이 멈추지 않게 함
+    if (!YOUTUBE_API_KEY) {
+      console.warn("[v3.3.7] YouTube API Key missing. Forcing Simulation Mode.");
+      setApiStatus("blocked");
+      generateSimulatedData();
+      return;
+    }
+    
     setIsLoading(true);
     setApiStatus("loading");
 
@@ -123,7 +130,16 @@ export const useTrendData = (selectedCountries) => {
   }, [fetchTrends]);
 
   const runAiAnalysis = async (filteredVideos) => {
-    if (!GEMINI_API_KEY || filteredVideos.length === 0) return;
+    if (filteredVideos.length === 0) {
+      alert("분석할 동영상이 없습니다.");
+      return;
+    }
+
+    if (!GEMINI_API_KEY) {
+      alert("[SECURITY] Gemini API Key가 설정되지 않았습니다. GitHub Secrets를 확인해 주세요.");
+      return;
+    }
+
     setIsAiLoading(true);
     try {
       // 상위 100개 비디오의 메타데이터를 더 상세하게 전달 (설명 포함)

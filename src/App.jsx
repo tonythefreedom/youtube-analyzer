@@ -121,8 +121,11 @@ const App = () => {
             ))}
           </div>
           {apiStatus === "blocked" && (
-            <div className="bg-orange-500/10 border border-orange-500/50 text-orange-500 text-[9px] font-black px-3 py-1.5 rounded-full animate-pulse">
-              SIMULATION MODE ACTIVE
+            <div className="flex flex-col items-end">
+              <div className="bg-orange-500/10 border border-orange-500/50 text-orange-500 text-[9px] font-black px-3 py-1.5 rounded-full animate-pulse">
+                SIMULATION MODE ACTIVE
+              </div>
+              <p className="text-[7px] text-orange-500/70 mt-1 uppercase font-bold">Check YouTube API Key in Secrets</p>
             </div>
           )}
         </div>
