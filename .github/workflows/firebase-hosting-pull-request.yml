@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      - run: npm install && npm run build
         env:
           VITE_AUTH_ID: ${{ secrets.VITE_AUTH_ID }}
           VITE_AUTH_PW: ${{ secrets.VITE_AUTH_PW }}
