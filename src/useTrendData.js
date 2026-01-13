@@ -76,7 +76,7 @@ export const useTrendData = (selectedCountries) => {
         items.forEach(item => {
           if (!allItemsMap.has(item.id)) {
             allItemsMap.set(item.id, {
-              uniqueId: `yt-${item.id}-${country}-${Date.now()}`,
+              uniqueId: `yt-${item.id}-${country}`,
               id: item.id,
               title: item.snippet.title,
               description: item.snippet.description || "",

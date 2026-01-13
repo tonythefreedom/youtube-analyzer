@@ -76,11 +76,20 @@ const VideoItemSimple = ({ video }) => {
 
 const VideoList = ({ videos }) => {
   const containerRef = useRef(null);
+  const prevVideosRef = useRef(null);
 
   useEffect(() => {
-    if (containerRef.current) {
+    // 실제로 videos 배열의 첫 번째 항목이 변경되었을 때만 스크롤 리셋
+    const prevFirstId = prevVideosRef.current?.[0]?.uniqueId;
+    const currentFirstId = videos?.[0]?.uniqueId;
+    
+    // 첫 번째 동영상이 완전히 바뀌었거나, 리스트가 비어있다가 채워졌을 때만 리셋
+    if (containerRef.current && (prevFirstId !== currentFirstId || (!prevVideosRef.current?.length && videos.length > 0))) {
       containerRef.current.scrollTop = 0;
     }
+    
+    prevVideosRef.current = videos;
+    
     // [v2.8.0 CRITICAL SYNC]
     if (videos.length > 0) {
       console.log(`[v2.8.0] DATA SYNC CHECK: ID=${videos[0].id} | Title=${videos[0].title}`);
