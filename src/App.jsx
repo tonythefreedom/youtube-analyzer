@@ -74,6 +74,7 @@ const App = () => {
   const filteredVideos = useMemo(() => {
     // 1단계: 조회수 기준으로 전체 데이터 정렬
     const sortedData = [...data].sort((a, b) => b.viewCount - a.viewCount);
+    console.log(`[v3.5.5] Total data: ${data.length}, After sort: ${sortedData.length}`);
     
     // 2단계: 구간 필터 적용 (필터링 전에 구간 선택)
     // [v3.4.4] YouTube API는 최대 200개만 반환하므로 구간을 200개 기준으로 조정
@@ -97,22 +98,33 @@ const App = () => {
       default:
         rangeFiltered = sortedData;
     }
+    console.log(`[v3.5.5] After rank range filter (${rankRange}): ${rangeFiltered.length}`);
     
-    // 3단계: 선택된 구간 내에서 타입, 키워드, 날짜 필터 적용
-    return rangeFiltered.filter(v => {
+    // 3단계: 선택된 구간 내에서 타입, 날짜 필터 적용 (키워드 필터 제거)
+    const beforeFilter = rangeFiltered.length;
+    const filtered = rangeFiltered.filter(v => {
       const typeMatch = filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts);
       
-      // [v3.2.2] 검색 범위를 제목, 채널명, 설명으로 확장하여 매칭률 향상
-      const keyword = activeCategory ? activeCategory.toLowerCase() : null;
-      const categoryMatch = !keyword || 
-        v.title.toLowerCase().includes(keyword) || 
-        v.channelTitle.toLowerCase().includes(keyword) ||
-        (v.description && v.description.toLowerCase().includes(keyword));
-      
       const videoDate = v.publishedAt.split('T')[0];
-      return typeMatch && categoryMatch && videoDate >= dateRange.start && videoDate <= dateRange.end;
+      const dateMatch = videoDate >= dateRange.start && videoDate <= dateRange.end;
+      
+      return typeMatch && dateMatch;
     });
-  }, [data, filterType, activeCategory, dateRange, rankRange]);
+    
+    // [v3.5.5] 필터링 통계 로그
+    const dateFiltered = rangeFiltered.filter(v => {
+      const videoDate = v.publishedAt.split('T')[0];
+      return videoDate >= dateRange.start && videoDate <= dateRange.end;
+    });
+    console.log(`[v3.5.6] ===== Filtering Summary =====`);
+    console.log(`[v3.5.6] After rank filter: ${beforeFilter}`);
+    console.log(`[v3.5.6] After date filter (${dateRange.start} ~ ${dateRange.end}): ${dateFiltered.length}`);
+    console.log(`[v3.5.6] After type filter (${filterType}): ${rangeFiltered.filter(v => filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts)).length}`);
+    console.log(`[v3.5.6] Final filtered videos: ${filtered.length}`);
+    console.log(`[v3.5.6] =============================`);
+    
+    return filtered;
+  }, [data, filterType, dateRange, rankRange]); // [v3.5.6] activeCategory 의존성 제거
 
   // [v3.5.0] 국가 토글 선택 (복수 선택 가능)
   // [v3.5.1] 최소 1개 제한 제거 - 모든 국가를 선택/해제 가능
