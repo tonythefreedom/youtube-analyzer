@@ -50,7 +50,7 @@ const App = () => {
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastMonth, end: today }); // [v3.5.7] 한 달 전으로 변경
-  const [rankRange, setRankRange] = useState('top50'); // 구간 필터: top50, 50-100, 100-150, 150-200 (YouTube API는 최대 200개만 반환)
+  const [rankRange, setRankRange] = useState('all'); // [v3.5.8] 기본값을 all로 변경: top50, 50-100, 100-150, 150-200, all (YouTube API는 최대 200개만 반환)
   
   // [v3.2.0] 기본 비율을 7:3으로 변경 (화면의 70%)
   const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.7);
