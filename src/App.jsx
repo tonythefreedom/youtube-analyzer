@@ -9,7 +9,37 @@ import authConfig from './authConfig.json';
 
 const App = () => {
   const version = "v3.4.0";
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // [v3.4.6] 로그인 세션을 localStorage에 저장하여 새로고침 후에도 유지
+  // [v3.4.7] 세션 만료 시간 30분 추가
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // 페이지 로드 시 localStorage에서 로그인 상태 확인
+    const sessionData = localStorage.getItem('yt-trend-scope-session');
+    if (!sessionData) return false;
+    
+    try {
+      const { timestamp } = JSON.parse(sessionData);
+      const now = Date.now();
+      const sessionAge = now - timestamp;
+      const thirtyMinutes = 30 * 60 * 1000; // 30분을 밀리초로 변환
+      
+      if (sessionAge > thirtyMinutes) {
+        // 세션 만료
+        localStorage.removeItem('yt-trend-scope-session');
+        console.log('[v3.4.7] Session expired after 30 minutes');
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      // 기존 형식 호환성 (문자열 'authenticated'만 있는 경우)
+      if (sessionData === 'authenticated') {
+        // 기존 세션을 새 형식으로 변환
+        localStorage.setItem('yt-trend-scope-session', JSON.stringify({ timestamp: Date.now() }));
+        return true;
+      }
+      return false;
+    }
+  });
   
   const today = new Date().toISOString().split('T')[0];
   const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -115,10 +145,60 @@ const App = () => {
     };
   }, [onResize, stopResizing]);
 
+  // [v3.4.7] 세션 만료 체크 (1분마다 확인)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const checkSessionExpiry = () => {
+      const sessionData = localStorage.getItem('yt-trend-scope-session');
+      if (!sessionData) {
+        setIsLoggedIn(false);
+        return;
+      }
+
+      try {
+        const { timestamp } = JSON.parse(sessionData);
+        const now = Date.now();
+        const sessionAge = now - timestamp;
+        const thirtyMinutes = 30 * 60 * 1000; // 30분
+
+        if (sessionAge > thirtyMinutes) {
+          localStorage.removeItem('yt-trend-scope-session');
+          setIsLoggedIn(false);
+          console.log('[v3.4.7] Session expired after 30 minutes');
+        }
+      } catch (e) {
+        // 세션 데이터 형식 오류
+        localStorage.removeItem('yt-trend-scope-session');
+        setIsLoggedIn(false);
+      }
+    };
+
+    // 즉시 한 번 체크
+    checkSessionExpiry();
+
+    // 1분마다 체크
+    const interval = setInterval(checkSessionExpiry, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  // [v3.4.6] 로그인 핸들러: localStorage에 세션 저장
+  // [v3.4.7] 세션에 타임스탬프 추가 (30분 만료)
+  const handleLogin = () => {
+    const sessionData = {
+      timestamp: Date.now(),
+      authenticated: true
+    };
+    localStorage.setItem('yt-trend-scope-session', JSON.stringify(sessionData));
+    setIsLoggedIn(true);
+    console.log('[v3.4.7] Session created, will expire in 30 minutes');
+  };
+
   if (!isLoggedIn) {
     return (
       <Login 
-        onLogin={() => setIsLoggedIn(true)} 
+        onLogin={handleLogin} 
         expectedIdHash={authConfig.idHash}
         expectedPwHash={authConfig.pwHash}
       />
