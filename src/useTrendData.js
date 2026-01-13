@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // [v2.7.4] Gemini 3 Flash Preview 모델 적용
@@ -41,8 +41,17 @@ export const useTrendData = (selectedCountries) => {
   const [aiStrategy, setAiStrategy] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState("idle");
+  const quotaExceededRef = useRef(false); // 할당량 초과 플래그
 
   const fetchTrends = useCallback(async () => {
+    // [v3.4.1] 할당량 초과 시 재시도 방지
+    if (quotaExceededRef.current) {
+      console.warn("[v3.4.1] Quota exceeded. Using simulation mode.");
+      setApiStatus("blocked");
+      generateSimulatedData();
+      return;
+    }
+    
     // [v3.3.7] API 키가 없으면 시뮬레이션 모드로 강제 전환하여 앱이 멈추지 않게 함
     if (!YOUTUBE_API_KEY) {
       console.warn("[v3.3.7] YouTube API Key missing. Forcing Simulation Mode.");
@@ -63,7 +72,15 @@ export const useTrendData = (selectedCountries) => {
           const response = await fetch(url);
           const resData = await response.json();
           
-          if (resData.error) throw new Error(resData.error.message);
+          // [v3.4.1] 할당량 초과 오류 명확히 감지
+          if (resData.error) {
+            const errorMessage = resData.error.message || '';
+            if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || response.status === 403) {
+              quotaExceededRef.current = true;
+              throw new Error('QUOTA_EXCEEDED');
+            }
+            throw new Error(resData.error.message);
+          }
           
           return { 
             country, 
@@ -94,10 +111,22 @@ export const useTrendData = (selectedCountries) => {
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
       setData(finalData);
       setApiStatus("success");
+      quotaExceededRef.current = false; // 성공 시 플래그 리셋
     } catch (error) {
-      console.warn("[v2.3.0] API Error Detected. Running 2026 Sync Simulation.", error.message);
-      setApiStatus("blocked");
-      generateSimulatedData();
+      const isQuotaExceeded = error.message === 'QUOTA_EXCEEDED' || 
+                                 error.message?.includes('quota') || 
+                                 error.message?.includes('exceeded');
+      
+      if (isQuotaExceeded) {
+        quotaExceededRef.current = true;
+        console.warn("[v3.4.1] YouTube API Quota Exceeded. Switching to simulation mode.");
+        setApiStatus("blocked");
+        generateSimulatedData();
+      } else {
+        console.warn("[v2.3.0] API Error Detected. Running 2026 Sync Simulation.", error.message);
+        setApiStatus("blocked");
+        generateSimulatedData();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +156,8 @@ export const useTrendData = (selectedCountries) => {
 
   useEffect(() => {
     fetchTrends();
-  }, [fetchTrends]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCountries.join(',')]); // selectedCountries가 변경될 때만 실행
 
   const runAiAnalysis = async (filteredVideos) => {
     if (filteredVideos.length === 0) {
