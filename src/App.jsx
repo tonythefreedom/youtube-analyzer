@@ -42,14 +42,14 @@ const App = () => {
   });
   
   const today = new Date().toISOString().split('T')[0];
-  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // [v3.5.7] 한 달 전으로 변경
 
   // [v3.5.0] 여러 국가 복수 선택 가능
   // [v3.5.2] 기본값을 US만으로 설정
   const [selectedCountries, setSelectedCountries] = useState(['US']);
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
-  const [dateRange, setDateRange] = useState({ start: lastWeek, end: today });
+  const [dateRange, setDateRange] = useState({ start: lastMonth, end: today }); // [v3.5.7] 한 달 전으로 변경
   const [rankRange, setRankRange] = useState('top50'); // 구간 필터: top50, 50-100, 100-150, 150-200 (YouTube API는 최대 200개만 반환)
   
   // [v3.2.0] 기본 비율을 7:3으로 변경 (화면의 70%)
