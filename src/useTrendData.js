@@ -74,7 +74,9 @@ export const useTrendData = (selectedCountries, enabled = true) => {
     try {
       const allItemsMap = new Map();
 
-      const results = await Promise.all(
+      console.log(`[v3.5.3] Starting data collection for ${selectedCountries.length} countries: ${selectedCountries.join(', ')}`);
+      
+      const results = await Promise.allSettled(
         selectedCountries.map(async (country) => {
           // [v3.4.4] YouTube API mostPopular는 최대 200개까지만 반환 (500개는 불가능)
           const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
@@ -95,9 +97,9 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           // [v3.4.4] categoryId 필터 제거 - 음악 카테고리도 포함하여 더 많은 데이터 확보
           const filteredItems = allItems; // 필터 제거: .filter(item => item.snippet.categoryId !== "10")
           
-          console.log(`[v3.4.5] ${country}: API returned ${allItems.length} items (requested 200), after filter: ${filteredItems.length}`);
+          console.log(`[v3.5.3] ${country}: API returned ${allItems.length} items (requested 200), after filter: ${filteredItems.length}`);
           if (allItems.length < 200) {
-            console.warn(`[v3.4.5] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
+            console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
           
           return { 
@@ -106,9 +108,27 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           };
         })
       );
+      
+      // [v3.5.3] 실패한 국가 확인
+      const failedCountries = results
+        .map((result, index) => result.status === 'rejected' ? selectedCountries[index] : null)
+        .filter(Boolean);
+      
+      if (failedCountries.length > 0) {
+        console.error(`[v3.5.3] Failed to fetch data for countries: ${failedCountries.join(', ')}`);
+      }
+      
+      // 성공한 결과만 필터링
+      const successfulResults = results
+        .filter(result => result.status === 'fulfilled')
+        .map(result => result.value);
 
       let totalBeforeDedup = 0;
-      results.forEach(({ country, items }) => {
+      let duplicateCount = 0;
+      const countryStats = {};
+      
+      successfulResults.forEach(({ country, items }) => {
+        countryStats[country] = items.length;
         totalBeforeDedup += items.length;
         items.forEach(item => {
           if (!allItemsMap.has(item.id)) {
@@ -125,17 +145,33 @@ export const useTrendData = (selectedCountries, enabled = true) => {
               isShorts: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) <= 60 : false
             });
           } else {
-            // 중복 발견 시 로그
-            console.log(`[v3.4.5] Duplicate video ID found: ${item.id} (already exists from another country)`);
+            duplicateCount++;
+            // 중복 발견 시 로그 (너무 많으면 로그 제한)
+            if (duplicateCount <= 10) {
+              console.log(`[v3.5.3] Duplicate video ID found: ${item.id} (already exists from another country)`);
+            }
           }
         });
       });
 
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
-      console.log(`[v3.4.5] Total videos before deduplication: ${totalBeforeDedup}, after deduplication: ${finalData.length}`);
+      
+      // [v3.5.3] 상세 통계 로그
+      console.log(`[v3.5.3] ===== Data Collection Summary =====`);
+      console.log(`[v3.5.3] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
+      console.log(`[v3.5.3] Successful countries: ${successfulResults.length}`);
+      if (failedCountries.length > 0) {
+        console.log(`[v3.5.3] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
+      }
+      console.log(`[v3.5.3] Country breakdown:`, countryStats);
+      console.log(`[v3.5.3] Total before deduplication: ${totalBeforeDedup}`);
+      console.log(`[v3.5.3] Duplicates removed: ${duplicateCount}`);
+      console.log(`[v3.5.3] Final unique videos: ${finalData.length}`);
+      console.log(`[v3.5.3] ====================================`);
       
       if (finalData.length < 50) {
-        console.warn(`[v3.4.5] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
+        console.warn(`[v3.5.3] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
+        console.warn(`[v3.5.3] Possible reasons: API limitations, high duplicate rate, or failed API calls.`);
       }
       setData(finalData);
       setApiStatus("success");
