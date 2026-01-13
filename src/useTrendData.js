@@ -59,7 +59,7 @@ export const useTrendData = (selectedCountries) => {
 
       const results = await Promise.all(
         selectedCountries.map(async (country) => {
-          const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+          const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=500&key=${YOUTUBE_API_KEY}`;
           const response = await fetch(url);
           const resData = await response.json();
           
@@ -106,7 +106,7 @@ export const useTrendData = (selectedCountries) => {
   const generateSimulatedData = () => {
     const simData = [];
     const seed = Date.now();
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 500; i++) {
       const asset = VERIFIED_2026_ASSETS[i % VERIFIED_2026_ASSETS.length];
       const country = selectedCountries[i % selectedCountries.length];
       simData.push({
@@ -142,8 +142,8 @@ export const useTrendData = (selectedCountries) => {
 
     setIsAiLoading(true);
     try {
-      // 상위 100개 비디오의 메타데이터를 더 상세하게 전달 (설명 포함)
-      const sampleData = filteredVideos.slice(0, 100).map((v, index) => ({
+      // 선택된 구간의 비디오 메타데이터를 더 상세하게 전달 (설명 포함)
+      const sampleData = filteredVideos.map((v, index) => ({
         index,
         title: v.title,
         channel: v.channelTitle,

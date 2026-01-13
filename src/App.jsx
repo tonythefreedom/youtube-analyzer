@@ -8,23 +8,24 @@ import { hashString } from './utils/auth';
 import authConfig from './authConfig.json';
 
 const App = () => {
-  const version = "v3.3.1";
+  const version = "v3.4.0";
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const today = new Date().toISOString().split('T')[0];
   const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  const [selectedCountries, setSelectedCountries] = useState(['KR', 'US']);
+  const [selectedCountry, setSelectedCountry] = useState('KR'); // 단일 국가 선택
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastWeek, end: today });
+  const [rankRange, setRankRange] = useState('top100'); // 구간 필터: top100, 100-200, 200-300, 300-400, 400-500
   
   // [v3.2.0] 기본 비율을 7:3으로 변경 (화면의 70%)
   const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.7);
   const isResizing = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
 
-  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(selectedCountries);
+  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData([selectedCountry]);
 
   const handleCopy = (story, index) => {
     const text = `[Angle ${index + 1}: ${story.angle}]\nTitle: ${story.title}\nConcept: ${story.concept}\nKey Points:\n${story.key_points.map(p => `- ${p}`).join('\n')}`;
@@ -34,7 +35,32 @@ const App = () => {
   };
 
   const filteredVideos = useMemo(() => {
-    return data.filter(v => {
+    // 조회수 기준으로 정렬된 데이터
+    const sortedData = [...data].sort((a, b) => b.viewCount - a.viewCount);
+    
+    // 구간 필터 적용
+    let rangeFiltered = sortedData;
+    switch(rankRange) {
+      case 'top100':
+        rangeFiltered = sortedData.slice(0, 100);
+        break;
+      case '100-200':
+        rangeFiltered = sortedData.slice(100, 200);
+        break;
+      case '200-300':
+        rangeFiltered = sortedData.slice(200, 300);
+        break;
+      case '300-400':
+        rangeFiltered = sortedData.slice(300, 400);
+        break;
+      case '400-500':
+        rangeFiltered = sortedData.slice(400, 500);
+        break;
+      default:
+        rangeFiltered = sortedData;
+    }
+    
+    return rangeFiltered.filter(v => {
       const typeMatch = filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts);
       
       // [v3.2.2] 검색 범위를 제목, 채널명, 설명으로 확장하여 매칭률 향상
@@ -47,10 +73,10 @@ const App = () => {
       const videoDate = v.publishedAt.split('T')[0];
       return typeMatch && categoryMatch && videoDate >= dateRange.start && videoDate <= dateRange.end;
     });
-  }, [data, filterType, activeCategory, dateRange]);
+  }, [data, filterType, activeCategory, dateRange, rankRange]);
 
-  const toggleCountry = (code) => {
-    setSelectedCountries(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
+  const selectCountry = (code) => {
+    setSelectedCountry(code);
   };
 
   // [v3.0.0] 드래그 리사이징 핸들러
@@ -117,7 +143,7 @@ const App = () => {
 
           <div className="flex items-center gap-2 bg-surface p-1 rounded-full border border-gray-800">
             {Object.entries(countries).map(([code, { flag }]) => (
-              <button key={code} onClick={() => toggleCountry(code)} className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedCountries.includes(code) ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]' : 'text-gray-500 hover:text-gray-300'}`}>{flag} {code}</button>
+              <button key={code} onClick={() => selectCountry(code)} className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedCountry === code ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]' : 'text-gray-500 hover:text-gray-300'}`}>{flag} {code}</button>
             ))}
           </div>
           {apiStatus === "blocked" && (
@@ -143,23 +169,39 @@ const App = () => {
               <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><Layers size={16} className="text-primary" />AI Analysis Hub</h2>
-                <button 
-                  onClick={() => runAiAnalysis(filteredVideos)} 
-                  disabled={isAiLoading || filteredVideos.length === 0} 
-                  className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all overflow-hidden ${isAiLoading ? 'bg-gray-800 text-primary cursor-wait' : 'bg-primary text-black shadow-[0_0_25px_rgba(0,242,255,0.4)] hover:scale-105 active:scale-95'}`}
-                >
-                  {isAiLoading ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      <span className="tracking-widest animate-pulse">ANALYZING...</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-                    </>
-                  ) : (
-                    <>
-                      <Zap size={14} fill="currentColor" /> RUN DEEP ANALYSIS
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-gray-800">
+                    <span className="text-[9px] text-gray-500 font-black uppercase">Rank Range:</span>
+                    <select 
+                      value={rankRange} 
+                      onChange={(e) => setRankRange(e.target.value)}
+                      className="bg-transparent text-[10px] font-black text-white outline-none cursor-pointer"
+                    >
+                      <option value="top100">Top 100</option>
+                      <option value="100-200">100-200</option>
+                      <option value="200-300">200-300</option>
+                      <option value="300-400">300-400</option>
+                      <option value="400-500">400-500</option>
+                    </select>
+                  </div>
+                  <button 
+                    onClick={() => runAiAnalysis(filteredVideos)} 
+                    disabled={isAiLoading || filteredVideos.length === 0} 
+                    className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all overflow-hidden ${isAiLoading ? 'bg-gray-800 text-primary cursor-wait' : 'bg-primary text-black shadow-[0_0_25px_rgba(0,242,255,0.4)] hover:scale-105 active:scale-95'}`}
+                  >
+                    {isAiLoading ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        <span className="tracking-widest animate-pulse">ANALYZING...</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={14} fill="currentColor" /> RUN DEEP ANALYSIS
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
