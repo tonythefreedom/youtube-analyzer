@@ -25,7 +25,11 @@ const App = () => {
   const isResizing = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
 
-  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData([selectedCountry]);
+  // [v3.4.2] 로그인 후에만 API 호출
+  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(
+    isLoggedIn ? [selectedCountry] : [], 
+    isLoggedIn
+  );
 
   const handleCopy = (story, index) => {
     const text = `[Angle ${index + 1}: ${story.angle}]\nTitle: ${story.title}\nConcept: ${story.concept}\nKey Points:\n${story.key_points.map(p => `- ${p}`).join('\n')}`;

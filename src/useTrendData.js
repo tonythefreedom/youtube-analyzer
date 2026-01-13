@@ -34,7 +34,7 @@ const VERIFIED_2026_ASSETS = [
   { id: 'oe64p-QzhNE', t: 'Ancient Rome in 5 Minutes', c: 'TED-Ed' }
 ];
 
-export const useTrendData = (selectedCountries) => {
+export const useTrendData = (selectedCountries, enabled = true) => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [aiKeywords, setAiKeywords] = useState([]);
@@ -42,6 +42,7 @@ export const useTrendData = (selectedCountries) => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState("idle");
   const quotaExceededRef = useRef(false); // 할당량 초과 플래그
+  const hasLoadedRef = useRef(false); // 로그인 후 한 번만 로드하기 위한 플래그
 
   const fetchTrends = useCallback(async () => {
     // [v3.4.1] 할당량 초과 시 재시도 방지
@@ -155,9 +156,19 @@ export const useTrendData = (selectedCountries) => {
   };
 
   useEffect(() => {
-    fetchTrends();
+    // [v3.4.3] 로그인 후 화면 로드 시 또는 국가 변경 시 API 호출
+    if (enabled) {
+      if (!hasLoadedRef.current) {
+        // 첫 로그인 시 플래그 설정
+        hasLoadedRef.current = true;
+      }
+      fetchTrends();
+    } else {
+      // 로그아웃 시 플래그 리셋
+      hasLoadedRef.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCountries.join(',')]); // selectedCountries가 변경될 때만 실행
+  }, [enabled, selectedCountries.join(',')]); // enabled 또는 selectedCountries 변경 시 실행
 
   const runAiAnalysis = async (filteredVideos) => {
     if (filteredVideos.length === 0) {
