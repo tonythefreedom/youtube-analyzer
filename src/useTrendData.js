@@ -184,6 +184,7 @@ export const useTrendData = (selectedCountries, enabled = true) => {
 
   useEffect(() => {
     // [v3.4.3] 로그인 후 화면 로드 시 또는 국가 변경 시 API 호출
+    // [v3.5.2] 국가 선택 시마다 데이터 다시 가져오기
     if (enabled) {
       if (!hasLoadedRef.current) {
         // 첫 로그인 시 플래그 설정

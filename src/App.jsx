@@ -44,7 +44,9 @@ const App = () => {
   const today = new Date().toISOString().split('T')[0];
   const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  const [selectedCountry, setSelectedCountry] = useState('US'); // 단일 국가 선택 (기본: 영어)
+  // [v3.5.0] 여러 국가 복수 선택 가능
+  // [v3.5.2] 기본값을 US만으로 설정
+  const [selectedCountries, setSelectedCountries] = useState(['US']);
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastWeek, end: today });
@@ -56,21 +58,9 @@ const App = () => {
   const [copiedId, setCopiedId] = useState(null);
 
   // [v3.4.2] 로그인 후에만 API 호출
-  // [v3.4.9] 영어권 국가 선택 시 여러 국가 조합, 나머지는 단일 국가
-  const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'AU', 'CA', 'SG'];
-  
-  const countriesToFetch = useMemo(() => {
-    if (!isLoggedIn) return [];
-    // 영어권 국가 선택 시 모든 영어권 국가 조합
-    if (ENGLISH_SPEAKING_COUNTRIES.includes(selectedCountry)) {
-      return ENGLISH_SPEAKING_COUNTRIES;
-    }
-    // 나머지 국가는 단일로
-    return [selectedCountry];
-  }, [selectedCountry, isLoggedIn]);
-  
+  // [v3.5.0] 선택된 모든 국가의 데이터 수집
   const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(
-    countriesToFetch, 
+    isLoggedIn ? selectedCountries : [], 
     isLoggedIn
   );
 
@@ -124,8 +114,32 @@ const App = () => {
     });
   }, [data, filterType, activeCategory, dateRange, rankRange]);
 
-  const selectCountry = (code) => {
-    setSelectedCountry(code);
+  // [v3.5.0] 국가 토글 선택 (복수 선택 가능)
+  // [v3.5.1] 최소 1개 제한 제거 - 모든 국가를 선택/해제 가능
+  const toggleCountry = (code) => {
+    setSelectedCountries(prev => {
+      if (prev.includes(code)) {
+        // 이미 선택된 경우 제거
+        return prev.filter(c => c !== code);
+      } else {
+        // 선택되지 않은 경우 추가
+        return [...prev, code];
+      }
+    });
+  };
+
+  // [v3.5.1] 전체 선택/해제 기능
+  const toggleAllCountries = () => {
+    const allCountryCodes = Object.keys(countries);
+    const allSelected = allCountryCodes.every(code => selectedCountries.includes(code));
+    
+    if (allSelected) {
+      // 모두 선택된 경우 모두 해제 (하지만 최소 1개는 유지)
+      setSelectedCountries([allCountryCodes[0]]);
+    } else {
+      // 일부만 선택된 경우 모두 선택
+      setSelectedCountries(allCountryCodes);
+    }
   };
 
   // [v3.0.0] 드래그 리사이징 핸들러
@@ -241,8 +255,31 @@ const App = () => {
           </div>
 
           <div className="flex items-center gap-2 bg-surface p-1 rounded-full border border-gray-800">
+            {/* [v3.5.1] 전체 선택/해제 버튼 */}
+            <button
+              onClick={toggleAllCountries}
+              className={`px-3 py-1.5 rounded-full text-[9px] font-black transition-all ${
+                Object.keys(countries).every(code => selectedCountries.includes(code))
+                  ? 'bg-secondary text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+              title="전체 선택/해제"
+            >
+              {Object.keys(countries).every(code => selectedCountries.includes(code)) ? 'ALL' : 'SELECT ALL'}
+            </button>
             {Object.entries(countries).map(([code, { flag }]) => (
-              <button key={code} onClick={() => selectCountry(code)} className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${selectedCountry === code ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]' : 'text-gray-500 hover:text-gray-300'}`}>{flag} {code}</button>
+              <button 
+                key={code} 
+                onClick={() => toggleCountry(code)} 
+                className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${
+                  selectedCountries.includes(code) 
+                    ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]' 
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                title={selectedCountries.includes(code) ? '선택됨 (클릭하여 해제)' : '클릭하여 선택'}
+              >
+                {flag} {code}
+              </button>
             ))}
           </div>
           {apiStatus === "blocked" && (
