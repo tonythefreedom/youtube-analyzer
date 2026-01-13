@@ -88,7 +88,10 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           // [v3.4.4] categoryId 필터 제거 - 음악 카테고리도 포함하여 더 많은 데이터 확보
           const filteredItems = allItems; // 필터 제거: .filter(item => item.snippet.categoryId !== "10")
           
-          console.log(`[v3.4.4] ${country}: API returned ${allItems.length} items, after filter: ${filteredItems.length}`);
+          console.log(`[v3.4.5] ${country}: API returned ${allItems.length} items (requested 200), after filter: ${filteredItems.length}`);
+          if (allItems.length < 200) {
+            console.warn(`[v3.4.5] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
+          }
           
           return { 
             country, 
@@ -97,7 +100,9 @@ export const useTrendData = (selectedCountries, enabled = true) => {
         })
       );
 
+      let totalBeforeDedup = 0;
       results.forEach(({ country, items }) => {
+        totalBeforeDedup += items.length;
         items.forEach(item => {
           if (!allItemsMap.has(item.id)) {
             allItemsMap.set(item.id, {
@@ -112,12 +117,19 @@ export const useTrendData = (selectedCountries, enabled = true) => {
               country: country,
               isShorts: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) <= 60 : false
             });
+          } else {
+            // 중복 발견 시 로그
+            console.log(`[v3.4.5] Duplicate video ID found: ${item.id} (already exists from another country)`);
           }
         });
       });
 
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
-      console.log(`[v3.4.4] Total videos collected: ${finalData.length}`);
+      console.log(`[v3.4.5] Total videos before deduplication: ${totalBeforeDedup}, after deduplication: ${finalData.length}`);
+      
+      if (finalData.length < 50) {
+        console.warn(`[v3.4.5] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
+      }
       setData(finalData);
       setApiStatus("success");
       quotaExceededRef.current = false; // 성공 시 플래그 리셋
