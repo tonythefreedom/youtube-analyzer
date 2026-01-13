@@ -14,7 +14,7 @@ const VideoItemSimple = ({ video }) => {
   return (
     <div 
       onClick={handleOpenYouTube}
-      className="group relative bg-surface/40 hover:bg-surface/80 rounded-2xl border border-gray-800/50 hover:border-primary/30 transition-all p-3 flex gap-4 cursor-pointer overflow-hidden"
+      className="group relative bg-surface/40 hover:bg-surface/80 rounded-2xl border border-gray-800/50 hover:border-primary/30 transition-colors duration-200 p-3 flex gap-4 cursor-pointer"
     >
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
         <ExternalLink size={14} className="text-primary" />
@@ -24,7 +24,7 @@ const VideoItemSimple = ({ video }) => {
         <img 
           src={video.thumbnail} 
           alt=""
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           referrerPolicy="no-referrer"
           loading="lazy"
           onError={(e) => {
