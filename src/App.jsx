@@ -56,8 +56,21 @@ const App = () => {
   const [copiedId, setCopiedId] = useState(null);
 
   // [v3.4.2] 로그인 후에만 API 호출
+  // [v3.4.9] 영어권 국가 선택 시 여러 국가 조합, 나머지는 단일 국가
+  const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'AU', 'CA', 'SG'];
+  
+  const countriesToFetch = useMemo(() => {
+    if (!isLoggedIn) return [];
+    // 영어권 국가 선택 시 모든 영어권 국가 조합
+    if (ENGLISH_SPEAKING_COUNTRIES.includes(selectedCountry)) {
+      return ENGLISH_SPEAKING_COUNTRIES;
+    }
+    // 나머지 국가는 단일로
+    return [selectedCountry];
+  }, [selectedCountry, isLoggedIn]);
+  
   const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(
-    isLoggedIn ? [selectedCountry] : [], 
+    countriesToFetch, 
     isLoggedIn
   );
 

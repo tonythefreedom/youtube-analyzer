@@ -13,7 +13,14 @@ const COUNTRIES = {
   KR: { name: 'South Korea', flag: '🇰🇷' },
   US: { name: 'United States', flag: '🇺🇸' },
   JP: { name: 'Japan', flag: '🇯🇵' },
+  GB: { name: 'United Kingdom', flag: '🇬🇧' },
+  AU: { name: 'Australia', flag: '🇦🇺' },
+  CA: { name: 'Canada', flag: '🇨🇦' },
+  SG: { name: 'Singapore', flag: '🇸🇬' },
 };
+
+// [v3.4.9] 영어권 국가 목록
+const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'AU', 'CA', 'SG'];
 
 // [v2.3.0] 2026년 최신 검증 데이터 (100% 작동 확인 ID)
 const VERIFIED_2026_ASSETS = [
@@ -289,7 +296,7 @@ export const useTrendData = (selectedCountries, enabled = true) => {
     }
   };
 
-  return { data, analysis: { keywords: aiKeywords, totalViews: data.reduce((sum, v) => sum + v.viewCount, 0) }, aiStrategy, isLoading, isAiLoading, runAiAnalysis, apiStatus, countries: COUNTRIES };
+  return { data, analysis: { keywords: aiKeywords, totalViews: data.reduce((sum, v) => sum + v.viewCount, 0) }, aiStrategy, isLoading, isAiLoading, runAiAnalysis, apiStatus, countries: COUNTRIES, englishSpeakingCountries: ENGLISH_SPEAKING_COUNTRIES };
 };
 
 function parseDuration(duration) {
