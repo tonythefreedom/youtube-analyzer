@@ -14,7 +14,7 @@ const App = () => {
   const today = new Date().toISOString().split('T')[0];
   const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  const [selectedCountry, setSelectedCountry] = useState('KR'); // 단일 국가 선택
+  const [selectedCountry, setSelectedCountry] = useState('US'); // 단일 국가 선택 (기본: 영어)
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastWeek, end: today });
@@ -35,32 +35,8 @@ const App = () => {
   };
 
   const filteredVideos = useMemo(() => {
-    // 조회수 기준으로 정렬된 데이터
-    const sortedData = [...data].sort((a, b) => b.viewCount - a.viewCount);
-    
-    // 구간 필터 적용
-    let rangeFiltered = sortedData;
-    switch(rankRange) {
-      case 'top100':
-        rangeFiltered = sortedData.slice(0, 100);
-        break;
-      case '100-200':
-        rangeFiltered = sortedData.slice(100, 200);
-        break;
-      case '200-300':
-        rangeFiltered = sortedData.slice(200, 300);
-        break;
-      case '300-400':
-        rangeFiltered = sortedData.slice(300, 400);
-        break;
-      case '400-500':
-        rangeFiltered = sortedData.slice(400, 500);
-        break;
-      default:
-        rangeFiltered = sortedData;
-    }
-    
-    return rangeFiltered.filter(v => {
+    // 1단계: 먼저 타입, 키워드, 날짜 필터 적용
+    const preFiltered = data.filter(v => {
       const typeMatch = filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts);
       
       // [v3.2.2] 검색 범위를 제목, 채널명, 설명으로 확장하여 매칭률 향상
@@ -73,6 +49,25 @@ const App = () => {
       const videoDate = v.publishedAt.split('T')[0];
       return typeMatch && categoryMatch && videoDate >= dateRange.start && videoDate <= dateRange.end;
     });
+    
+    // 2단계: 조회수 기준으로 정렬
+    const sortedData = [...preFiltered].sort((a, b) => b.viewCount - a.viewCount);
+    
+    // 3단계: 구간 필터 적용
+    switch(rankRange) {
+      case 'top100':
+        return sortedData.slice(0, 100);
+      case '100-200':
+        return sortedData.slice(100, 200);
+      case '200-300':
+        return sortedData.slice(200, 300);
+      case '300-400':
+        return sortedData.slice(300, 400);
+      case '400-500':
+        return sortedData.slice(400, 500);
+      default:
+        return sortedData;
+    }
   }, [data, filterType, activeCategory, dateRange, rankRange]);
 
   const selectCountry = (code) => {
