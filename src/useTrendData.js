@@ -43,6 +43,7 @@ const VERIFIED_2026_ASSETS = [
 
 export const useTrendData = (selectedCountries, enabled = true) => {
   const [data, setData] = useState([]);
+  const dataRef = useRef(data); // [v3.5.4] 최신 data 참조를 위한 ref
   const [isLoading, setIsLoading] = useState(false);
   const [aiKeywords, setAiKeywords] = useState([]);
   const [aiStrategy, setAiStrategy] = useState(null);
@@ -50,8 +51,15 @@ export const useTrendData = (selectedCountries, enabled = true) => {
   const [apiStatus, setApiStatus] = useState("idle");
   const quotaExceededRef = useRef(false); // 할당량 초과 플래그
   const hasLoadedRef = useRef(false); // 로그인 후 한 번만 로드하기 위한 플래그
+  const loadedCountriesRef = useRef(new Set()); // [v3.5.4] 이미 로드된 국가 추적
+  
+  // [v3.5.4] data가 변경될 때마다 ref 업데이트
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   const fetchTrends = useCallback(async () => {
+    // [v3.5.4] data를 의존성에 추가하여 기존 데이터에 접근 가능하도록 함
     // [v3.4.1] 할당량 초과 시 재시도 방지
     if (quotaExceededRef.current) {
       console.warn("[v3.4.1] Quota exceeded. Using simulation mode.");
@@ -72,12 +80,26 @@ export const useTrendData = (selectedCountries, enabled = true) => {
     setApiStatus("loading");
 
     try {
-      const allItemsMap = new Map();
-
-      console.log(`[v3.5.3] Starting data collection for ${selectedCountries.length} countries: ${selectedCountries.join(', ')}`);
+      // [v3.5.4] 기존 데이터를 Map으로 변환하여 유지 (ref를 통해 최신 데이터 접근)
+      const existingDataMap = new Map();
+      dataRef.current.forEach(video => {
+        existingDataMap.set(video.id, video);
+      });
+      
+      // [v3.5.4] 아직 로드되지 않은 국가만 필터링
+      const countriesToFetch = selectedCountries.filter(country => !loadedCountriesRef.current.has(country));
+      
+      if (countriesToFetch.length === 0) {
+        console.log(`[v3.5.4] All selected countries already loaded. No new API calls needed.`);
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log(`[v3.5.4] Starting data collection for ${countriesToFetch.length} new countries: ${countriesToFetch.join(', ')}`);
+      console.log(`[v3.5.4] Already loaded countries: ${Array.from(loadedCountriesRef.current).join(', ') || 'none'}`);
       
       const results = await Promise.allSettled(
-        selectedCountries.map(async (country) => {
+        countriesToFetch.map(async (country) => {
           // [v3.4.4] YouTube API mostPopular는 최대 200개까지만 반환 (500개는 불가능)
           const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
           const response = await fetch(url);
@@ -123,15 +145,22 @@ export const useTrendData = (selectedCountries, enabled = true) => {
         .filter(result => result.status === 'fulfilled')
         .map(result => result.value);
 
+      // [v3.5.4] 기존 데이터를 먼저 Map에 추가
+      const allItemsMap = new Map(existingDataMap);
+      
       let totalBeforeDedup = 0;
       let duplicateCount = 0;
+      let newItemsCount = 0;
       const countryStats = {};
       
       successfulResults.forEach(({ country, items }) => {
         countryStats[country] = items.length;
         totalBeforeDedup += items.length;
+        loadedCountriesRef.current.add(country); // 로드된 국가로 표시
+        
         items.forEach(item => {
           if (!allItemsMap.has(item.id)) {
+            newItemsCount++;
             allItemsMap.set(item.id, {
               uniqueId: `yt-${item.id}-${country}`,
               id: item.id,
@@ -148,26 +177,37 @@ export const useTrendData = (selectedCountries, enabled = true) => {
             duplicateCount++;
             // 중복 발견 시 로그 (너무 많으면 로그 제한)
             if (duplicateCount <= 10) {
-              console.log(`[v3.5.3] Duplicate video ID found: ${item.id} (already exists from another country)`);
+              console.log(`[v3.5.4] Duplicate video ID found: ${item.id} (already exists)`);
             }
           }
         });
       });
+      
+      // [v3.5.4] 선택 해제된 국가의 데이터 제거
+      const currentCountrySet = new Set(selectedCountries);
+      Array.from(allItemsMap.values()).forEach(video => {
+        if (!currentCountrySet.has(video.country)) {
+          allItemsMap.delete(video.id);
+        }
+      });
 
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
       
-      // [v3.5.3] 상세 통계 로그
-      console.log(`[v3.5.3] ===== Data Collection Summary =====`);
-      console.log(`[v3.5.3] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
-      console.log(`[v3.5.3] Successful countries: ${successfulResults.length}`);
+      // [v3.5.4] 상세 통계 로그
+      console.log(`[v3.5.4] ===== Data Collection Summary =====`);
+      console.log(`[v3.5.4] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
+      console.log(`[v3.5.4] New countries fetched: ${countriesToFetch.length} (${countriesToFetch.join(', ')})`);
+      console.log(`[v3.5.4] Successful countries: ${successfulResults.length}`);
       if (failedCountries.length > 0) {
-        console.log(`[v3.5.3] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
+        console.log(`[v3.5.4] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
       }
-      console.log(`[v3.5.3] Country breakdown:`, countryStats);
-      console.log(`[v3.5.3] Total before deduplication: ${totalBeforeDedup}`);
-      console.log(`[v3.5.3] Duplicates removed: ${duplicateCount}`);
-      console.log(`[v3.5.3] Final unique videos: ${finalData.length}`);
-      console.log(`[v3.5.3] ====================================`);
+      console.log(`[v3.5.4] Country breakdown:`, countryStats);
+      console.log(`[v3.5.4] Existing videos: ${existingDataMap.size}`);
+      console.log(`[v3.5.4] New videos added: ${newItemsCount}`);
+      console.log(`[v3.5.4] Total before deduplication: ${totalBeforeDedup}`);
+      console.log(`[v3.5.4] Duplicates removed: ${duplicateCount}`);
+      console.log(`[v3.5.4] Final unique videos: ${finalData.length}`);
+      console.log(`[v3.5.4] ====================================`);
       
       if (finalData.length < 50) {
         console.warn(`[v3.5.3] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
@@ -220,16 +260,18 @@ export const useTrendData = (selectedCountries, enabled = true) => {
 
   useEffect(() => {
     // [v3.4.3] 로그인 후 화면 로드 시 또는 국가 변경 시 API 호출
-    // [v3.5.2] 국가 선택 시마다 데이터 다시 가져오기
+    // [v3.5.4] 국가 선택 시 새 국가만 추가로 가져오기
     if (enabled) {
       if (!hasLoadedRef.current) {
-        // 첫 로그인 시 플래그 설정
+        // 첫 로그인 시 플래그 설정 및 로드된 국가 초기화
         hasLoadedRef.current = true;
+        loadedCountriesRef.current.clear();
       }
       fetchTrends();
     } else {
-      // 로그아웃 시 플래그 리셋
+      // 로그아웃 시 플래그 및 로드된 국가 리셋
       hasLoadedRef.current = false;
+      loadedCountriesRef.current.clear();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, selectedCountries.join(',')]); // enabled 또는 selectedCountries 변경 시 실행
