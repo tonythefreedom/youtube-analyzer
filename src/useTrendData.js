@@ -69,7 +69,8 @@ export const useTrendData = (selectedCountries, enabled = true) => {
 
       const results = await Promise.all(
         selectedCountries.map(async (country) => {
-          const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=500&key=${YOUTUBE_API_KEY}`;
+          // [v3.4.4] YouTube API mostPopular는 최대 200개까지만 반환 (500개는 불가능)
+          const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
           const response = await fetch(url);
           const resData = await response.json();
           
@@ -83,9 +84,15 @@ export const useTrendData = (selectedCountries, enabled = true) => {
             throw new Error(resData.error.message);
           }
           
+          const allItems = resData.items || [];
+          // [v3.4.4] categoryId 필터 제거 - 음악 카테고리도 포함하여 더 많은 데이터 확보
+          const filteredItems = allItems; // 필터 제거: .filter(item => item.snippet.categoryId !== "10")
+          
+          console.log(`[v3.4.4] ${country}: API returned ${allItems.length} items, after filter: ${filteredItems.length}`);
+          
           return { 
             country, 
-            items: (resData.items || []).filter(item => item.snippet.categoryId !== "10") 
+            items: filteredItems
           };
         })
       );
@@ -110,6 +117,7 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       });
 
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
+      console.log(`[v3.4.4] Total videos collected: ${finalData.length}`);
       setData(finalData);
       setApiStatus("success");
       quotaExceededRef.current = false; // 성공 시 플래그 리셋

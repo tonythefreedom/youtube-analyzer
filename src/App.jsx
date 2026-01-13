@@ -18,7 +18,7 @@ const App = () => {
   const [filterType, setFilterType] = useState('all');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastWeek, end: today });
-  const [rankRange, setRankRange] = useState('top100'); // 구간 필터: top100, 100-200, 200-300, 300-400, 400-500
+  const [rankRange, setRankRange] = useState('top50'); // 구간 필터: top50, 50-100, 100-150, 150-200 (YouTube API는 최대 200개만 반환)
   
   // [v3.2.0] 기본 비율을 7:3으로 변경 (화면의 70%)
   const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.7);
@@ -43,22 +43,23 @@ const App = () => {
     const sortedData = [...data].sort((a, b) => b.viewCount - a.viewCount);
     
     // 2단계: 구간 필터 적용 (필터링 전에 구간 선택)
+    // [v3.4.4] YouTube API는 최대 200개만 반환하므로 구간을 200개 기준으로 조정
     let rangeFiltered = sortedData;
     switch(rankRange) {
-      case 'top100':
-        rangeFiltered = sortedData.slice(0, 100);
+      case 'top50':
+        rangeFiltered = sortedData.slice(0, 50);
         break;
-      case '100-200':
-        rangeFiltered = sortedData.slice(100, 200);
+      case '50-100':
+        rangeFiltered = sortedData.slice(50, 100);
         break;
-      case '200-300':
-        rangeFiltered = sortedData.slice(200, 300);
+      case '100-150':
+        rangeFiltered = sortedData.slice(100, 150);
         break;
-      case '300-400':
-        rangeFiltered = sortedData.slice(300, 400);
+      case '150-200':
+        rangeFiltered = sortedData.slice(150, 200);
         break;
-      case '400-500':
-        rangeFiltered = sortedData.slice(400, 500);
+      case 'all':
+        rangeFiltered = sortedData;
         break;
       default:
         rangeFiltered = sortedData;
@@ -182,11 +183,11 @@ const App = () => {
                       onChange={(e) => setRankRange(e.target.value)}
                       className="bg-transparent text-[10px] font-black text-white outline-none cursor-pointer"
                     >
-                      <option value="top100">Top 100</option>
-                      <option value="100-200">100-200</option>
-                      <option value="200-300">200-300</option>
-                      <option value="300-400">300-400</option>
-                      <option value="400-500">400-500</option>
+                      <option value="top50">Top 50</option>
+                      <option value="50-100">50-100</option>
+                      <option value="100-150">100-150</option>
+                      <option value="150-200">150-200</option>
+                      <option value="all">All</option>
                     </select>
                   </div>
                   <button 
