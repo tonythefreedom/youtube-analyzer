@@ -52,8 +52,8 @@ const App = () => {
   const [dateRange, setDateRange] = useState({ start: lastMonth, end: today }); // [v3.5.7] 한 달 전으로 변경
   const [rankRange, setRankRange] = useState('all'); // [v3.5.8] 기본값을 all로 변경: top50, 50-100, 100-150, 150-200, all (YouTube API는 최대 200개만 반환)
   
-  // [v3.2.0] 기본 비율을 7:3으로 변경 (화면의 70%)
-  const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.7);
+  // [v3.7.0] 기본 비율을 6.5:3.5로 변경 (화면의 65%)
+  const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.65);
   const isResizing = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
 
