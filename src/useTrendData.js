@@ -141,6 +141,22 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           }
           
           const allItems = resData.items || [];
+
+          // [v3.8.5] 디버깅: 첫 3개 아이템의 썸네일 정보 로깅
+          if (allItems.length > 0) {
+            console.log(`[DEBUG] ${country}: Checking first 3 items for thumbnail aspect ratios:`);
+            allItems.slice(0, 3).forEach((item, idx) => {
+              const thumb = item.snippet.thumbnails;
+              const high = thumb?.high;
+              const medium = thumb?.medium;
+              const def = thumb?.default;
+              console.log(`[DEBUG] Item ${idx + 1} (${item.snippet.title.substring(0, 50)}...):`);
+              console.log(`  - high: ${high ? `${high.width}x${high.height} (ratio: ${(high.width / high.height).toFixed(2)})` : 'N/A'}`);
+              console.log(`  - medium: ${medium ? `${medium.width}x${medium.height} (ratio: ${(medium.width / medium.height).toFixed(2)})` : 'N/A'}`);
+              console.log(`  - default: ${def ? `${def.width}x${def.height} (ratio: ${(def.width / def.height).toFixed(2)})` : 'N/A'}`);
+            });
+          }
+
           // [v3.8.4] Shorts 식별: 썸네일 비율만으로 세로 영상 판별 (가장 정확한 방법)
           const filteredItems = allItems.filter(item => {
             // 썸네일 비율 체크 (세로 영상 = Shorts)
