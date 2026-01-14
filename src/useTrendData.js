@@ -158,11 +158,22 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
 
               // 1단계: search.list로 비디오 ID 가져오기
               const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&order=viewCount&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+
+              console.log(`[DEBUG] ${country} (shorts): Calling search API: ${searchUrl.replace(YOUTUBE_API_KEY, 'API_KEY_HIDDEN')}`);
+
               const searchResponse = await fetch(searchUrl);
               const searchData = await searchResponse.json();
 
+              console.log(`[DEBUG] ${country} (shorts): search API response:`, {
+                error: searchData.error || 'none',
+                itemsCount: searchData.items?.length || 0,
+                pageInfo: searchData.pageInfo,
+                firstItem: searchData.items?.[0]?.snippet?.title || 'N/A'
+              });
+
               if (searchData.error) {
                 const errorMessage = searchData.error.message || '';
+                console.error(`[ERROR] ${country} (shorts): search API error:`, searchData.error);
                 if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || searchResponse.status === 403) {
                   quotaExceededRef.current = true;
                   throw new Error('QUOTA_EXCEEDED');
@@ -173,6 +184,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               const searchItems = searchData.items || [];
               if (searchItems.length === 0) {
                 console.warn(`[v4.0.0] ${country} (shorts): No shorts found in search results`);
+                console.warn(`[DEBUG] Full search response:`, JSON.stringify(searchData, null, 2));
                 return { country, items: [] };
               }
 
