@@ -333,7 +333,12 @@ const App = () => {
                     </select>
                   </div>
                   <button 
-                    onClick={() => runAiAnalysis(filteredVideos)} 
+                    onClick={() => runAiAnalysis(filteredVideos, {
+                      selectedCountries,
+                      rankRange,
+                      dateRange,
+                      totalVideos: data.length
+                    })} 
                     disabled={isAiLoading || filteredVideos.length === 0} 
                     className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all overflow-hidden ${isAiLoading ? 'bg-gray-800 text-primary cursor-wait' : 'bg-primary text-black shadow-[0_0_25px_rgba(0,242,255,0.4)] hover:scale-105 active:scale-95'}`}
                   >
@@ -362,7 +367,7 @@ const App = () => {
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
                       <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
-                        Weekly Trend Insight & 3 Storytelling Angles
+                        Monthly Trend Insight & 3 Storytelling Angles
                       </h3>
                     </div>
                     

@@ -22,24 +22,7 @@ const COUNTRIES = {
 // [v3.4.9] 영어권 국가 목록
 const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'AU', 'CA', 'SG'];
 
-// [v2.3.0] 2026년 최신 검증 데이터 (100% 작동 확인 ID)
-const VERIFIED_2026_ASSETS = [
-  { id: 'AfQ13jsLDms', t: 'Stranger Things 5 | Finale Trailer', c: 'Netflix' },
-  { id: 'K_CbgLpvHmw', t: '$1 vs $100,000,000 House!', c: 'MrBeast' },
-  { id: 'w7ejDZ8SWv8', t: 'iPhone 16 Pro: The Real Review', c: 'MKBHD' },
-  { id: 'OPf0YbXqDm0', t: 'Shark Attack Test 2026', c: 'Mark Rober' },
-  { id: 'msN87yiajvw', t: 'The Future of Energy', c: 'Veritasium' },
-  { id: 'RgKAFK5djSk', t: 'Ultimate Ramen Guide', c: 'Joshua Weissman' },
-  { id: '7wtfhZwyrcc', t: 'Tokyo Night Life 2026', c: 'Paolo fromTOKYO' },
-  { id: 'jG7dSXcfVqE', t: 'Why I Quit Everything', c: 'Casey Neistat' },
-  { id: 'U9DyHthJ6LA', t: 'Gordon Ramsay on Hot Ones S25', c: 'First We Feast' },
-  { id: 'n3Xv_g3g-mA', t: 'The Ego Explained', c: 'Kurzgesagt' },
-  { id: 'uJ7-vS75Sno', t: 'Perfect Pasta Carbonara', c: 'Babish' },
-  { id: 'BL4DqUMVudQ', t: 'Gaming PC for $500 in 2026', c: 'Linus Tech Tips' },
-  { id: 'Y2TM40zWfIs', t: 'SpaceX Mars Mission Update', c: 'SpaceX' },
-  { id: '377uInSAtCI', t: 'Golf Trick Shots 5', c: 'Dude Perfect' },
-  { id: 'oe64p-QzhNE', t: 'Ancient Rome in 5 Minutes', c: 'TED-Ed' }
-];
+// [v3.5.9] VERIFIED_2026_ASSETS 제거 - 동적으로 가져온 데이터만 사용
 
 export const useTrendData = (selectedCountries, enabled = true) => {
   const [data, setData] = useState([]);
@@ -60,19 +43,23 @@ export const useTrendData = (selectedCountries, enabled = true) => {
 
   const fetchTrends = useCallback(async () => {
     // [v3.5.4] data를 의존성에 추가하여 기존 데이터에 접근 가능하도록 함
-    // [v3.4.1] 할당량 초과 시 재시도 방지
+    // [v3.5.9] 할당량 초과 시 재시도 방지 및 실제 데이터만 사용
     if (quotaExceededRef.current) {
-      console.warn("[v3.4.1] Quota exceeded. Using simulation mode.");
+      console.warn("[v3.5.9] Quota exceeded. No data will be loaded.");
       setApiStatus("blocked");
-      generateSimulatedData();
+      setData([]);
+      alert("YouTube API 할당량이 초과되었습니다. API 키의 할당량을 확인해 주세요.");
+      setIsLoading(false);
       return;
     }
     
-    // [v3.3.7] API 키가 없으면 시뮬레이션 모드로 강제 전환하여 앱이 멈추지 않게 함
+    // [v3.5.9] API 키가 없으면 데이터를 로드하지 않음
     if (!YOUTUBE_API_KEY) {
-      console.warn("[v3.3.7] YouTube API Key missing. Forcing Simulation Mode.");
+      console.warn("[v3.5.9] YouTube API Key missing. No data will be loaded.");
       setApiStatus("blocked");
-      generateSimulatedData();
+      setData([]);
+      alert("YouTube API 키가 설정되지 않았습니다. GitHub Secrets를 확인해 주세요.");
+      setIsLoading(false);
       return;
     }
     
@@ -223,39 +210,23 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       
       if (isQuotaExceeded) {
         quotaExceededRef.current = true;
-        console.warn("[v3.4.1] YouTube API Quota Exceeded. Switching to simulation mode.");
-        setApiStatus("blocked");
-        generateSimulatedData();
+        console.warn("[v3.5.9] YouTube API Quota Exceeded. No simulation data will be used.");
+        handleApiFailure("YouTube API 할당량이 초과되었습니다.");
       } else {
-        console.warn("[v2.3.0] API Error Detected. Running 2026 Sync Simulation.", error.message);
-        setApiStatus("blocked");
-        generateSimulatedData();
+        console.warn("[v3.5.9] API Error Detected. No simulation data will be used.", error.message);
+        handleApiFailure(error.message || "알 수 없는 오류가 발생했습니다.");
       }
     } finally {
       setIsLoading(false);
     }
   }, [selectedCountries]);
 
-  const generateSimulatedData = () => {
-    const simData = [];
-    const seed = Date.now();
-    for (let i = 0; i < 500; i++) {
-      const asset = VERIFIED_2026_ASSETS[i % VERIFIED_2026_ASSETS.length];
-      const country = selectedCountries[i % selectedCountries.length];
-      simData.push({
-        uniqueId: `v230-sim-${asset.id}-${i}`,
-        id: asset.id,
-        title: asset.t,
-        description: `This is a simulated description for ${asset.t} by ${asset.c}. Trending in 2026.`,
-        channelTitle: asset.c,
-        publishedAt: new Date(seed - (Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString(),
-        thumbnail: `https://i.ytimg.com/vi/${asset.id}/hqdefault.jpg`,
-        viewCount: Math.floor(Math.random() * 5000000) + 100000,
-        country: country,
-        isShorts: (i % 12 === 0)
-      });
-    }
-    setData(simData.sort(() => Math.random() - 0.5));
+  // [v3.5.9] 시뮬레이션 모드 제거 - 실제 데이터만 사용
+  const handleApiFailure = (errorMessage) => {
+    console.error("[v3.5.9] API Error:", errorMessage);
+    setApiStatus("blocked");
+    setData([]); // 빈 데이터로 설정
+    alert("YouTube API 호출에 실패했습니다. API 키와 할당량을 확인해 주세요.\n\n에러: " + errorMessage);
   };
 
   useEffect(() => {
@@ -276,7 +247,7 @@ export const useTrendData = (selectedCountries, enabled = true) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, selectedCountries.join(',')]); // enabled 또는 selectedCountries 변경 시 실행
 
-  const runAiAnalysis = async (filteredVideos) => {
+  const runAiAnalysis = async (filteredVideos, analysisContext = {}) => {
     if (filteredVideos.length === 0) {
       alert("분석할 동영상이 없습니다.");
       return;
@@ -289,35 +260,69 @@ export const useTrendData = (selectedCountries, enabled = true) => {
 
     setIsAiLoading(true);
     try {
-      // 선택된 구간의 비디오 메타데이터를 더 상세하게 전달 (설명 포함)
+      // [v3.5.9] 분석 컨텍스트 정보 수집
+      const { selectedCountries = [], rankRange = 'all', dateRange = null, totalVideos = 0 } = analysisContext;
+      
+      // 선택된 구간의 비디오 메타데이터를 더 상세하게 전달 (국가, 조회수, 날짜 포함)
       const sampleData = filteredVideos.map((v, index) => ({
         index,
         title: v.title,
         channel: v.channelTitle,
-        description: v.description.substring(0, 100) // 설명은 100자까지만
+        country: v.country,
+        views: v.viewCount,
+        publishedAt: v.publishedAt,
+        description: v.description.substring(0, 200) // 설명은 200자까지 확장
       }));
 
-      const prompt = `You are a World-Class YouTube Storytelling Strategist. 
-      Analyze the trending data and derive 3 distinct video production strategies (Sub-Stories) based on different angles.
-      
-      TREND DATA:
-      ${JSON.stringify(sampleData)}
+      // 국가 정보 문자열 생성
+      const countriesInfo = selectedCountries.length > 0 
+        ? selectedCountries.map(code => COUNTRIES[code] ? `${COUNTRIES[code].flag} ${COUNTRIES[code].name}` : code).join(', ')
+        : 'Unknown';
+
+      // 날짜 범위 정보
+      const dateInfo = dateRange 
+        ? `from ${dateRange.start} to ${dateRange.end} (approximately ${Math.ceil((new Date(dateRange.end) - new Date(dateRange.start)) / (1000 * 60 * 60 * 24))} days)`
+        : 'date range not specified';
+
+      // Rank range 정보
+      const rankInfo = rankRange === 'all' 
+        ? 'all rankings (complete dataset)'
+        : rankRange === 'top50' 
+          ? 'top 50 rankings'
+          : `rankings ${rankRange}`;
+
+      const prompt = `You are a World-Class YouTube Storytelling Strategist and Trend Analyst.
+      Analyze the trending video data and derive 3 distinct video production strategies (Sub-Stories) based on different storytelling angles.
+
+      ANALYSIS CONTEXT:
+      - Countries: ${countriesInfo}
+      - Date Range: ${dateInfo}
+      - Rank Range: ${rankInfo}
+      - Total Videos Analyzed: ${filteredVideos.length} out of ${totalVideos} total collected videos
+      - Data Source: YouTube Trending Videos API
+
+      TREND DATA (${filteredVideos.length} videos):
+      ${JSON.stringify(sampleData, null, 2)}
 
       INSTRUCTIONS:
-      1. Analyze the core trend.
-      2. Derive 3 completely different storytelling angles (e.g., Documentary, Review/Analysis, Entertainment/Challenge).
-      3. For each angle, provide a title and a detailed concept.
-      4. Select 5 benchmark videos index from data.
+      1. Analyze the core trend patterns across the selected countries and date range.
+      2. Identify common themes, content types, and storytelling approaches that are performing well.
+      3. Derive 3 completely different storytelling angles (e.g., Documentary, Review/Analysis, Entertainment/Challenge, Educational, Personal Story, etc.).
+      4. For each angle, provide:
+         - A compelling video title
+         - A detailed concept explaining the storytelling strategy
+         - Key points including story hook, main conflict/point, and call to action
+      5. Select 5 benchmark video indices from the provided data that best represent successful examples.
 
       Return ONLY a JSON object with this structure:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "A deep, 2-sentence summary of the weekly trend in Korean.",
+        "overall_strategy": "A deep, 2-3 sentence summary of the trend analysis in Korean, considering the multi-country and monthly time span context.",
         "stories": [
           {
             "angle": "Angle Name (e.g. Documentary)",
             "title": "Video Title",
-            "concept": "Storytelling strategy and concept in Korean.",
+            "concept": "Storytelling strategy and concept in Korean, explaining how this angle addresses the identified trend.",
             "key_points": ["Story Hook", "Main Conflict/Point", "Call to Action"]
           },
           {
@@ -335,7 +340,12 @@ export const useTrendData = (selectedCountries, enabled = true) => {
         ],
         "benchmark_indices": [index1, index2, index3, index4, index5]
       }
-      Extract 30-40 high-value keywords in ENGLISH. All other textual analysis (overall_strategy, stories) must be in KOREAN.`;
+      
+      IMPORTANT:
+      - Extract 30-40 high-value keywords in ENGLISH based on the actual video titles, descriptions, and trends.
+      - All other textual analysis (overall_strategy, stories) must be in KOREAN.
+      - Consider the multi-country context and monthly time span when analyzing trends.
+      - The benchmark indices should reference the actual index numbers from the provided data array.`;
       
       const result = await aiModel.generateContent(prompt);
       const rawText = result.response.text().replace(/```json|```/g, '').trim();
