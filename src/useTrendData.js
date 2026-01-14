@@ -125,49 +125,83 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         
         results = await Promise.allSettled(
           countriesToFetch.map(async (country) => {
-          // [v3.4.4] YouTube API mostPopular는 최대 200개까지만 반환 (500개는 불가능)
-          const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
-          const response = await fetch(url);
-          const resData = await response.json();
-          
-          // [v3.4.1] 할당량 초과 오류 명확히 감지
-          if (resData.error) {
-            const errorMessage = resData.error.message || '';
-            if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || response.status === 403) {
-              quotaExceededRef.current = true;
-              throw new Error('QUOTA_EXCEEDED');
+            // [v4.0.0] 혼합 접근: Long-form은 mostPopular, Shorts는 search API 사용
+
+            if (currentContentType === 'long') {
+              // Long-form: 기존 mostPopular 방식 유지
+              const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
+              const response = await fetch(url);
+              const resData = await response.json();
+
+              if (resData.error) {
+                const errorMessage = resData.error.message || '';
+                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || response.status === 403) {
+                  quotaExceededRef.current = true;
+                  throw new Error('QUOTA_EXCEEDED');
+                }
+                throw new Error(resData.error.message);
+              }
+
+              const allItems = resData.items || [];
+              // Duration > 60초만 유지
+              const filteredItems = allItems.filter(item => {
+                const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+                return duration > 60;
+              });
+
+              console.log(`[v4.0.0] ${country} (long-form): mostPopular API returned ${allItems.length} items, after filter: ${filteredItems.length}`);
+
+              return { country, items: filteredItems };
+
+            } else {
+              // Shorts: search API 사용 (2단계)
+
+              // 1단계: search.list로 비디오 ID 가져오기
+              const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&order=viewCount&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+              const searchResponse = await fetch(searchUrl);
+              const searchData = await searchResponse.json();
+
+              if (searchData.error) {
+                const errorMessage = searchData.error.message || '';
+                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || searchResponse.status === 403) {
+                  quotaExceededRef.current = true;
+                  throw new Error('QUOTA_EXCEEDED');
+                }
+                throw new Error(searchData.error.message);
+              }
+
+              const searchItems = searchData.items || [];
+              if (searchItems.length === 0) {
+                console.warn(`[v4.0.0] ${country} (shorts): No shorts found in search results`);
+                return { country, items: [] };
+              }
+
+              // 2단계: videos.list로 상세 정보 가져오기
+              const videoIds = searchItems.map(item => item.id.videoId).join(',');
+              const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+              const videosResponse = await fetch(videosUrl);
+              const videosData = await videosResponse.json();
+
+              if (videosData.error) {
+                const errorMessage = videosData.error.message || '';
+                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || videosResponse.status === 403) {
+                  quotaExceededRef.current = true;
+                  throw new Error('QUOTA_EXCEEDED');
+                }
+                throw new Error(videosData.error.message);
+              }
+
+              const allItems = videosData.items || [];
+              // Duration ≤ 60초만 유지 (search API의 'short'는 4분 미만이므로 추가 필터링 필요)
+              const filteredItems = allItems.filter(item => {
+                const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+                return duration > 0 && duration <= 60;
+              });
+
+              console.log(`[v4.0.0] ${country} (shorts): search API returned ${searchItems.length} IDs, videos.list returned ${allItems.length}, after filter: ${filteredItems.length}`);
+
+              return { country, items: filteredItems };
             }
-            throw new Error(resData.error.message);
-          }
-          
-          const allItems = resData.items || [];
-
-          // [v3.9.0] Shorts 식별: Duration 기반 (YouTube API 썸네일은 항상 가로 형식이므로 비율 사용 불가)
-          const filteredItems = allItems.filter(item => {
-            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
-
-            if (duration === 0) {
-              // Duration 정보 없으면 제외
-              return false;
-            }
-
-            // Shorts: 60초 이하 (YouTube의 공식 Shorts 기준)
-            // Long-form: 60초 초과
-            const isShorts = duration <= 60;
-
-            // contentType에 따라 필터링
-            return currentContentType === 'long' ? !isShorts : isShorts;
-          });
-          
-          console.log(`[v3.9.0] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (duration ≤60s = shorts): ${filteredItems.length}`);
-          if (allItems.length < 200) {
-            console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
-          }
-          
-            return { 
-            country, 
-            items: filteredItems
-          };
           })
         );
       }
