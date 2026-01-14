@@ -142,10 +142,11 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           
           const allItems = resData.items || [];
           // [v3.8.0] contentType에 따라 long-form 또는 shorts만 필터링
+          // [v3.8.2] Shorts duration 기준을 60초에서 120초로 확대 (YouTube Shorts 확장 지원)
           const filteredItems = allItems.filter(item => {
             const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
-            const isShorts = duration > 0 && duration <= 60;
-            // contentType이 'long'이면 duration > 60초인 것만, 'shorts'이면 duration <= 60초인 것만
+            const isShorts = duration > 0 && duration <= 120;
+            // contentType이 'long'이면 duration > 120초인 것만, 'shorts'이면 duration <= 120초인 것만
             return currentContentType === 'long' ? !isShorts : isShorts;
           });
           
@@ -210,7 +211,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               thumbnail: `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
               viewCount: parseInt(item.statistics.viewCount || "0"),
               country: country,
-              isShorts: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) <= 60 : false
+              isShorts: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) <= 120 : false
             });
           } else {
             duplicateCount++;
