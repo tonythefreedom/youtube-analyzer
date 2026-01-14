@@ -141,16 +141,32 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           }
           
           const allItems = resData.items || [];
-          // [v3.8.0] contentType에 따라 long-form 또는 shorts만 필터링
-          // [v3.8.2] Shorts duration 기준을 60초에서 120초로 확대 (YouTube Shorts 확장 지원)
+          // [v3.8.3] Shorts 식별 로직 개선: Duration + 썸네일 비율 + 해시태그 혼합 접근
           const filteredItems = allItems.filter(item => {
             const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
-            const isShorts = duration > 0 && duration <= 120;
-            // contentType이 'long'이면 duration > 120초인 것만, 'shorts'이면 duration <= 120초인 것만
+
+            // 1. Duration 체크 (최대 3분 = 180초)
+            if (duration === 0 || duration > 180) {
+              return currentContentType === 'long';
+            }
+
+            // 2. 썸네일 비율 체크 (세로 영상 판별)
+            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
+            const isVertical = thumbnail && (thumbnail.width / thumbnail.height) < 0.7; // 세로 비율 (9:16 = 0.5625)
+
+            // 3. 해시태그 및 제목 체크
+            const title = (item.snippet.title || '').toLowerCase();
+            const description = (item.snippet.description || '').toLowerCase();
+            const hasShortTag = title.includes('shorts') || title.includes('#shorts') || description.includes('#shorts');
+
+            // Shorts 판정: 짧은 Duration (≤180초) + (세로 비율 OR 해시태그)
+            const isShorts = duration <= 180 && (isVertical || hasShortTag);
+
+            // contentType에 따라 필터링
             return currentContentType === 'long' ? !isShorts : isShorts;
           });
           
-          console.log(`[v3.8.0] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter: ${filteredItems.length}`);
+          console.log(`[v3.8.3] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (duration + aspect ratio + hashtag): ${filteredItems.length}`);
           if (allItems.length < 200) {
             console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
@@ -201,6 +217,16 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         items.forEach(item => {
           if (!allItemsMap.has(item.id)) {
             newItemsCount++;
+
+            // [v3.8.3] Shorts 판정 로직 (필터링과 동일한 로직 적용)
+            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
+            const isVertical = thumbnail && (thumbnail.width / thumbnail.height) < 0.7;
+            const title = (item.snippet.title || '').toLowerCase();
+            const description = (item.snippet.description || '').toLowerCase();
+            const hasShortTag = title.includes('shorts') || title.includes('#shorts') || description.includes('#shorts');
+            const isShorts = duration > 0 && duration <= 180 && (isVertical || hasShortTag);
+
             allItemsMap.set(item.id, {
               uniqueId: `yt-${item.id}-${country}`,
               id: item.id,
@@ -211,7 +237,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               thumbnail: `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`,
               viewCount: parseInt(item.statistics.viewCount || "0"),
               country: country,
-              isShorts: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) <= 120 : false
+              isShorts: isShorts
             });
           } else {
             duplicateCount++;
