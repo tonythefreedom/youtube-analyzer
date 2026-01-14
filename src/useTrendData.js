@@ -414,10 +414,55 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       console.log('[AI Analysis] Keywords type:', typeof res.keywords);
       console.log('[AI Analysis] Is array:', Array.isArray(res.keywords));
       
-      const keywords = res.keywords || [];
+      let keywords = res.keywords || [];
+      
+      // [v3.6.3] 키워드 데이터 형식 검증 및 변환
       if (keywords.length > 0) {
         console.log('[AI Analysis] First keyword sample:', keywords[0]);
         console.log('[AI Analysis] Keywords count:', keywords.length);
+        
+        // 키워드가 문자열 배열인 경우 {name, value} 형식으로 변환
+        if (typeof keywords[0] === 'string') {
+          console.warn('[AI Analysis] Keywords are strings, converting to {name, value} format');
+          keywords = keywords.map((keyword, index) => ({
+            name: keyword,
+            value: Math.max(10, 100 - Math.floor(index * 1.5)) // 인덱스에 따라 값 할당 (100부터 감소)
+          }));
+        } else if (keywords.length > 0 && (!keywords[0].name || keywords[0].value === undefined)) {
+          // 키워드가 객체이지만 name이나 value가 없는 경우
+          console.warn('[AI Analysis] Keywords missing name or value, attempting to fix');
+          keywords = keywords.map((keyword, index) => {
+            if (typeof keyword === 'string') {
+              return {
+                name: keyword,
+                value: Math.max(10, 100 - Math.floor(index * 1.5))
+              };
+            } else if (keyword && keyword.name && keyword.value === undefined) {
+              return {
+                name: keyword.name,
+                value: Math.max(10, 100 - Math.floor(index * 1.5))
+              };
+            } else if (keyword && keyword.value !== undefined && !keyword.name) {
+              return {
+                name: `Keyword ${index + 1}`,
+                value: keyword.value
+              };
+            }
+            return keyword;
+          }).filter(k => k && k.name && k.value !== undefined);
+        }
+        
+        // 최종 검증: 모든 키워드가 올바른 형식인지 확인
+        keywords = keywords.filter(k => {
+          const isValid = k && typeof k === 'object' && k.name && (k.value !== undefined && k.value !== null);
+          if (!isValid) {
+            console.warn('[AI Analysis] Filtered out invalid keyword:', k);
+          }
+          return isValid;
+        });
+        
+        console.log('[AI Analysis] Processed keywords:', keywords);
+        console.log('[AI Analysis] Final keywords count:', keywords.length);
       } else {
         console.warn('[AI Analysis] No keywords received from AI response');
       }
