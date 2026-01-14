@@ -177,24 +177,26 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               const allItems = resData.items || [];
 
               // Duration ≤ 60초만 유지 (Shorts 필터링)
+              let debugCount = 0;
               const filteredItems = allItems.filter(item => {
                 const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
                 const isShorts = duration > 0 && duration <= 60;
 
-                // 디버깅: 처음 5개 항목의 duration 로깅
-                if (filteredItems.length < 5) {
-                  console.log(`[v4.1.0] ${country} video sample:`, {
+                // 디버깅: 처음 10개 항목의 duration 로깅 (모든 항목)
+                if (debugCount < 10) {
+                  console.log(`[v4.1.1] ${country} video sample #${debugCount + 1}:`, {
                     title: item.snippet.title.substring(0, 50),
                     duration: duration,
                     isShorts: isShorts,
                     rawDuration: item.contentDetails?.duration
                   });
+                  debugCount++;
                 }
 
                 return isShorts;
               });
 
-              console.log(`[v4.1.0] ${country} (shorts): mostPopular returned ${allItems.length} items, after shorts filter (≤60s): ${filteredItems.length}`);
+              console.log(`[v4.1.1] ${country} (shorts): mostPopular returned ${allItems.length} items, after shorts filter (≤60s): ${filteredItems.length}`);
 
               return { country, items: filteredItems };
             }
