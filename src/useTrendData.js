@@ -141,32 +141,28 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           }
           
           const allItems = resData.items || [];
-          // [v3.8.3] Shorts 식별 로직 개선: Duration + 썸네일 비율 + 해시태그 혼합 접근
+          // [v3.8.4] Shorts 식별: 썸네일 비율만으로 세로 영상 판별 (가장 정확한 방법)
           const filteredItems = allItems.filter(item => {
-            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+            // 썸네일 비율 체크 (세로 영상 = Shorts)
+            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
 
-            // 1. Duration 체크 (최대 3분 = 180초)
-            if (duration === 0 || duration > 180) {
+            if (!thumbnail || !thumbnail.width || !thumbnail.height) {
+              // 썸네일 정보 없으면 Long-form으로 간주
               return currentContentType === 'long';
             }
 
-            // 2. 썸네일 비율 체크 (세로 영상 판별)
-            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
-            const isVertical = thumbnail && (thumbnail.width / thumbnail.height) < 0.7; // 세로 비율 (9:16 = 0.5625)
+            const aspectRatio = thumbnail.width / thumbnail.height;
+            // 세로 비율: 9:16 = 0.5625, 여유있게 0.8 미만을 세로로 판단
+            const isVertical = aspectRatio < 0.8;
 
-            // 3. 해시태그 및 제목 체크
-            const title = (item.snippet.title || '').toLowerCase();
-            const description = (item.snippet.description || '').toLowerCase();
-            const hasShortTag = title.includes('shorts') || title.includes('#shorts') || description.includes('#shorts');
-
-            // Shorts 판정: 짧은 Duration (≤180초) + (세로 비율 OR 해시태그)
-            const isShorts = duration <= 180 && (isVertical || hasShortTag);
+            // Shorts = 세로 영상, Long-form = 가로 영상
+            const isShorts = isVertical;
 
             // contentType에 따라 필터링
             return currentContentType === 'long' ? !isShorts : isShorts;
           });
           
-          console.log(`[v3.8.3] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (duration + aspect ratio + hashtag): ${filteredItems.length}`);
+          console.log(`[v3.8.4] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (aspect ratio < 0.8 = vertical/shorts): ${filteredItems.length}`);
           if (allItems.length < 200) {
             console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
@@ -218,14 +214,10 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           if (!allItemsMap.has(item.id)) {
             newItemsCount++;
 
-            // [v3.8.3] Shorts 판정 로직 (필터링과 동일한 로직 적용)
-            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+            // [v3.8.4] Shorts 판정: 썸네일 비율만으로 판별
             const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
-            const isVertical = thumbnail && (thumbnail.width / thumbnail.height) < 0.7;
-            const title = (item.snippet.title || '').toLowerCase();
-            const description = (item.snippet.description || '').toLowerCase();
-            const hasShortTag = title.includes('shorts') || title.includes('#shorts') || description.includes('#shorts');
-            const isShorts = duration > 0 && duration <= 180 && (isVertical || hasShortTag);
+            const aspectRatio = thumbnail && thumbnail.width && thumbnail.height ? thumbnail.width / thumbnail.height : 1.78; // 기본값 16:9
+            const isShorts = aspectRatio < 0.8; // 세로 영상 = Shorts
 
             allItemsMap.set(item.id, {
               uniqueId: `yt-${item.id}-${country}`,
