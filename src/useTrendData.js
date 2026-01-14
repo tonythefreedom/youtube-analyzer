@@ -24,7 +24,7 @@ const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'AU', 'CA', 'SG'];
 
 // [v3.5.9] VERIFIED_2026_ASSETS 제거 - 동적으로 가져온 데이터만 사용
 
-export const useTrendData = (selectedCountries, enabled = true) => {
+export const useTrendData = (selectedCountries, enabled = true, contentType = 'long') => {
   const [data, setData] = useState([]);
   const dataRef = useRef(data); // [v3.5.4] 최신 data 참조를 위한 ref
   const [isLoading, setIsLoading] = useState(false);
@@ -35,13 +35,16 @@ export const useTrendData = (selectedCountries, enabled = true) => {
   const quotaExceededRef = useRef(false); // 할당량 초과 플래그
   const hasLoadedRef = useRef(false); // 로그인 후 한 번만 로드하기 위한 플래그
   const loadedCountriesRef = useRef(new Set()); // [v3.5.4] 이미 로드된 국가 추적
+  const previousContentTypeRef = useRef(contentType); // [v3.8.0] 이전 contentType 추적
   
   // [v3.5.4] data가 변경될 때마다 ref 업데이트
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
 
-  const fetchTrends = useCallback(async () => {
+  const fetchTrends = useCallback(async (contentTypeParam) => {
+    // [v3.8.0] contentType 파라미터가 없으면 기본값 사용
+    const currentContentType = contentTypeParam || contentType;
     // [v3.5.4] data를 의존성에 추가하여 기존 데이터에 접근 가능하도록 함
     // [v3.5.9] 할당량 초과 시 재시도 방지 및 실제 데이터만 사용
     if (quotaExceededRef.current) {
@@ -124,10 +127,15 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           }
           
           const allItems = resData.items || [];
-          // [v3.4.4] categoryId 필터 제거 - 음악 카테고리도 포함하여 더 많은 데이터 확보
-          const filteredItems = allItems; // 필터 제거: .filter(item => item.snippet.categoryId !== "10")
+          // [v3.8.0] contentType에 따라 long-form 또는 shorts만 필터링
+          const filteredItems = allItems.filter(item => {
+            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+            const isShorts = duration > 0 && duration <= 60;
+            // contentType이 'long'이면 duration > 60초인 것만, 'shorts'이면 duration <= 60초인 것만
+            return currentContentType === 'long' ? !isShorts : isShorts;
+          });
           
-          console.log(`[v3.5.3] ${country}: API returned ${allItems.length} items (requested 200), after filter: ${filteredItems.length}`);
+          console.log(`[v3.8.0] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter: ${filteredItems.length}`);
           if (allItems.length < 200) {
             console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
@@ -154,8 +162,16 @@ export const useTrendData = (selectedCountries, enabled = true) => {
         .filter(result => result.status === 'fulfilled')
         .map(result => result.value);
 
-      // [v3.5.4] 기존 데이터를 먼저 Map에 추가
-      const allItemsMap = new Map(existingDataMap);
+      // [v3.8.0] 기존 데이터를 먼저 Map에 추가 (contentType에 맞는 것만 유지)
+      const allItemsMap = new Map();
+      existingDataMap.forEach((video, id) => {
+        // contentType에 맞는 데이터만 유지
+        if (currentContentType === 'long' && !video.isShorts) {
+          allItemsMap.set(id, video);
+        } else if (currentContentType === 'shorts' && video.isShorts) {
+          allItemsMap.set(id, video);
+        }
+      });
       
       let totalBeforeDedup = 0;
       let duplicateCount = 0;
@@ -199,6 +215,8 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           allItemsMap.delete(video.id);
         }
       });
+      
+      // [v3.8.0] contentType 변경 시 다른 타입 데이터 제거 (이미 위에서 처리됨)
 
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
       
@@ -261,20 +279,30 @@ export const useTrendData = (selectedCountries, enabled = true) => {
   useEffect(() => {
     // [v3.4.3] 로그인 후 화면 로드 시 또는 국가 변경 시 API 호출
     // [v3.5.4] 국가 선택 시 새 국가만 추가로 가져오기
+    // [v3.8.0] contentType 변경 시 로드된 국가 초기화
     if (enabled) {
       if (!hasLoadedRef.current) {
         // 첫 로그인 시 플래그 설정 및 로드된 국가 초기화
         hasLoadedRef.current = true;
         loadedCountriesRef.current.clear();
       }
-      fetchTrends();
+      
+      // [v3.8.0] contentType이 변경되면 로드된 국가 초기화 (다른 타입 데이터를 가져와야 함)
+      if (previousContentTypeRef.current !== contentType) {
+        console.log(`[v3.8.0] Content type changed from ${previousContentTypeRef.current} to ${contentType}, clearing loaded countries`);
+        loadedCountriesRef.current.clear();
+        previousContentTypeRef.current = contentType;
+      }
+      
+      fetchTrends(contentType);
     } else {
       // 로그아웃 시 플래그 및 로드된 국가 리셋
       hasLoadedRef.current = false;
       loadedCountriesRef.current.clear();
+      previousContentTypeRef.current = contentType;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, selectedCountries.join(',')]); // enabled 또는 selectedCountries 변경 시 실행
+  }, [enabled, selectedCountries.join(','), contentType]); // enabled, selectedCountries, contentType 변경 시 실행
 
   const runAiAnalysis = async (filteredVideos, analysisContext = {}) => {
     if (filteredVideos.length === 0) {

@@ -47,7 +47,8 @@ const App = () => {
   // [v3.5.0] 여러 국가 복수 선택 가능
   // [v3.5.2] 기본값을 US만으로 설정
   const [selectedCountries, setSelectedCountries] = useState(['US']);
-  const [filterType, setFilterType] = useState('all');
+  // [v3.8.0] 기본값을 long-form으로 설정, 'all' 필터 제거
+  const [filterType, setFilterType] = useState('long');
   const [activeCategory, setActiveCategory] = useState(null);
   const [dateRange, setDateRange] = useState({ start: lastMonth, end: today }); // [v3.5.7] 한 달 전으로 변경
   const [rankRange, setRankRange] = useState('all'); // [v3.5.8] 기본값을 all로 변경: top50, 50-100, 100-150, 150-200, all (YouTube API는 최대 200개만 반환)
@@ -59,9 +60,11 @@ const App = () => {
 
   // [v3.4.2] 로그인 후에만 API 호출
   // [v3.5.0] 선택된 모든 국가의 데이터 수집
+  // [v3.8.0] contentType 파라미터 추가 (long 또는 shorts)
   const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(
     isLoggedIn ? selectedCountries : [], 
-    isLoggedIn
+    isLoggedIn,
+    filterType // contentType 전달
   );
 
   const handleCopy = (story, index) => {
@@ -100,15 +103,13 @@ const App = () => {
     }
     console.log(`[v3.5.5] After rank range filter (${rankRange}): ${rangeFiltered.length}`);
     
-    // 3단계: 선택된 구간 내에서 타입, 날짜 필터 적용 (키워드 필터 제거)
+    // 3단계: 선택된 구간 내에서 날짜 필터 적용 (타입 필터 제거 - 이미 데이터가 해당 타입만 포함)
     const beforeFilter = rangeFiltered.length;
     const filtered = rangeFiltered.filter(v => {
-      const typeMatch = filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts);
-      
       const videoDate = v.publishedAt.split('T')[0];
       const dateMatch = videoDate >= dateRange.start && videoDate <= dateRange.end;
       
-      return typeMatch && dateMatch;
+      return dateMatch;
     });
     
     // [v3.5.5] 필터링 통계 로그
@@ -116,12 +117,12 @@ const App = () => {
       const videoDate = v.publishedAt.split('T')[0];
       return videoDate >= dateRange.start && videoDate <= dateRange.end;
     });
-    console.log(`[v3.5.6] ===== Filtering Summary =====`);
-    console.log(`[v3.5.6] After rank filter: ${beforeFilter}`);
-    console.log(`[v3.5.6] After date filter (${dateRange.start} ~ ${dateRange.end}): ${dateFiltered.length}`);
-    console.log(`[v3.5.6] After type filter (${filterType}): ${rangeFiltered.filter(v => filterType === 'all' || (filterType === 'shorts' && v.isShorts) || (filterType === 'long' && !v.isShorts)).length}`);
-    console.log(`[v3.5.6] Final filtered videos: ${filtered.length}`);
-    console.log(`[v3.5.6] =============================`);
+    console.log(`[v3.8.0] ===== Filtering Summary =====`);
+    console.log(`[v3.8.0] Content type: ${filterType}`);
+    console.log(`[v3.8.0] After rank filter: ${beforeFilter}`);
+    console.log(`[v3.8.0] After date filter (${dateRange.start} ~ ${dateRange.end}): ${dateFiltered.length}`);
+    console.log(`[v3.8.0] Final filtered videos: ${filtered.length}`);
+    console.log(`[v3.8.0] =============================`);
     
     return filtered;
   }, [data, filterType, dateRange, rankRange]); // [v3.5.6] activeCategory 의존성 제거
@@ -462,9 +463,9 @@ const App = () => {
         <div className="flex-grow flex flex-col gap-4 overflow-hidden h-full min-w-0 min-h-0 relative pl-4">
           <div className="flex items-center justify-between px-2 flex-shrink-0">
             <div className="flex gap-2 bg-surface p-1 rounded-xl border border-gray-800 shadow-lg">
-              {['all', 'long', 'shorts'].map(t => (
+              {['long', 'shorts'].map(t => (
                 <button key={t} onClick={() => setFilterType(t)} className={`px-5 py-2 rounded-lg text-[10px] font-black transition-all ${filterType === t ? 'bg-gray-700 text-white shadow-md ring-1 ring-white/10' : 'text-gray-500 hover:text-gray-300'}`}>
-                  {t === 'all' ? 'TOTAL' : t === 'long' ? 'LONG-FORM' : 'SHORTS'}
+                  {t === 'long' ? 'LONG-FORM' : 'SHORTS'}
                 </button>
               ))}
             </div>
