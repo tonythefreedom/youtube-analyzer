@@ -351,7 +351,21 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       const rawText = result.response.text().replace(/```json|```/g, '').trim();
       const res = JSON.parse(rawText);
       
-      setAiKeywords(res.keywords || []);
+      // [v3.6.0] 키워드 데이터 검증 및 로깅
+      console.log('[AI Analysis] Raw response:', res);
+      console.log('[AI Analysis] Keywords received:', res.keywords);
+      console.log('[AI Analysis] Keywords type:', typeof res.keywords);
+      console.log('[AI Analysis] Is array:', Array.isArray(res.keywords));
+      
+      const keywords = res.keywords || [];
+      if (keywords.length > 0) {
+        console.log('[AI Analysis] First keyword sample:', keywords[0]);
+        console.log('[AI Analysis] Keywords count:', keywords.length);
+      } else {
+        console.warn('[AI Analysis] No keywords received from AI response');
+      }
+      
+      setAiKeywords(keywords);
       
       let similar = [];
       if (res.benchmark_indices && Array.isArray(res.benchmark_indices)) {
@@ -385,7 +399,20 @@ export const useTrendData = (selectedCountries, enabled = true) => {
     }
   };
 
-  return { data, analysis: { keywords: aiKeywords, totalViews: data.reduce((sum, v) => sum + v.viewCount, 0) }, aiStrategy, isLoading, isAiLoading, runAiAnalysis, apiStatus, countries: COUNTRIES, englishSpeakingCountries: ENGLISH_SPEAKING_COUNTRIES };
+  // [v3.6.1] totalViews를 useMemo로 메모이제이션하여 data 변경 시 자동 갱신
+  const totalViews = useMemo(() => {
+    const sum = data.reduce((acc, v) => acc + (v.viewCount || 0), 0);
+    console.log('[useTrendData] Total views calculated:', sum, 'from', data.length, 'videos');
+    return sum;
+  }, [data]);
+
+  // [v3.6.1] analysis 객체를 useMemo로 메모이제이션하여 data나 aiKeywords 변경 시 자동 갱신
+  const analysis = useMemo(() => ({
+    keywords: aiKeywords,
+    totalViews: totalViews
+  }), [aiKeywords, totalViews]);
+
+  return { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, apiStatus, countries: COUNTRIES, englishSpeakingCountries: ENGLISH_SPEAKING_COUNTRIES };
 };
 
 function parseDuration(duration) {
