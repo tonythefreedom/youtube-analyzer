@@ -42,7 +42,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     dataRef.current = data;
   }, [data]);
 
-  const fetchTrends = useCallback(async (contentTypeParam) => {
+  const fetchTrends = useCallback(async (contentTypeParam, forceReload = false) => {
     // [v3.8.0] contentType 파라미터가 없으면 기본값 사용
     const currentContentType = contentTypeParam || contentType;
     // [v3.5.4] data를 의존성에 추가하여 기존 데이터에 접근 가능하도록 함
@@ -70,14 +70,28 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     setApiStatus("loading");
 
     try {
+      // [v3.8.1] contentType 변경 시 강제 리로드: 기존 데이터를 모두 제거하고 다시 가져오기
+      if (forceReload) {
+        console.log(`[v3.8.1] Force reload: clearing all existing data and reloading for ${currentContentType}`);
+        setData([]); // 상태도 초기화
+        dataRef.current = [];
+        loadedCountriesRef.current.clear();
+      }
+      
       // [v3.5.4] 기존 데이터를 Map으로 변환하여 유지 (ref를 통해 최신 데이터 접근)
+      // [v3.8.1] forceReload 시 기존 데이터가 없으므로 빈 Map
       const existingDataMap = new Map();
-      dataRef.current.forEach(video => {
-        existingDataMap.set(video.id, video);
-      });
+      if (!forceReload) {
+        dataRef.current.forEach(video => {
+          existingDataMap.set(video.id, video);
+        });
+      }
       
       // [v3.5.4] 아직 로드되지 않은 국가만 필터링
-      const countriesToFetch = selectedCountries.filter(country => !loadedCountriesRef.current.has(country));
+      // [v3.8.1] forceReload 시 모든 선택된 국가를 다시 가져오기
+      const countriesToFetch = forceReload 
+        ? selectedCountries 
+        : selectedCountries.filter(country => !loadedCountriesRef.current.has(country));
       
       // [v3.7.1] 해제된 국가 확인 (loadedCountriesRef에는 있지만 selectedCountries에는 없는 국가)
       const deselectedCountries = Array.from(loadedCountriesRef.current).filter(
@@ -287,14 +301,16 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         loadedCountriesRef.current.clear();
       }
       
-      // [v3.8.0] contentType이 변경되면 로드된 국가 초기화 (다른 타입 데이터를 가져와야 함)
-      if (previousContentTypeRef.current !== contentType) {
-        console.log(`[v3.8.0] Content type changed from ${previousContentTypeRef.current} to ${contentType}, clearing loaded countries`);
+      // [v3.8.0] contentType이 변경되면 로드된 국가 초기화 및 강제 리로드 (다른 타입 데이터를 가져와야 함)
+      const contentTypeChanged = previousContentTypeRef.current !== contentType;
+      if (contentTypeChanged) {
+        console.log(`[v3.8.1] Content type changed from ${previousContentTypeRef.current} to ${contentType}, forcing reload`);
         loadedCountriesRef.current.clear();
         previousContentTypeRef.current = contentType;
+        fetchTrends(contentType, true); // 강제 리로드
+      } else {
+        fetchTrends(contentType);
       }
-      
-      fetchTrends(contentType);
     } else {
       // 로그아웃 시 플래그 및 로드된 국가 리셋
       hasLoadedRef.current = false;
