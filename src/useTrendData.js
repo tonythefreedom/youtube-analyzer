@@ -154,63 +154,47 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               return { country, items: filteredItems };
 
             } else {
-              // Shorts: search API 사용 (2단계)
+              // Shorts: mostPopular에서 가져온 후 duration 기반 필터링 (개선된 방식)
+              // search API는 트렌딩 Shorts를 제대로 반환하지 못하는 경우가 많음
 
-              // 1단계: search.list로 비디오 ID 가져오기
-              const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&order=viewCount&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+              const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
 
-              console.log(`[DEBUG] ${country} (shorts): Calling search API: ${searchUrl.replace(YOUTUBE_API_KEY, 'API_KEY_HIDDEN')}`);
+              console.log(`[v4.1.0] ${country} (shorts): Calling mostPopular API`);
 
-              const searchResponse = await fetch(searchUrl);
-              const searchData = await searchResponse.json();
+              const response = await fetch(url);
+              const resData = await response.json();
 
-              console.log(`[DEBUG] ${country} (shorts): search API response:`, {
-                error: searchData.error || 'none',
-                itemsCount: searchData.items?.length || 0,
-                pageInfo: searchData.pageInfo,
-                firstItem: searchData.items?.[0]?.snippet?.title || 'N/A'
-              });
-
-              if (searchData.error) {
-                const errorMessage = searchData.error.message || '';
-                console.error(`[ERROR] ${country} (shorts): search API error:`, searchData.error);
-                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || searchResponse.status === 403) {
+              if (resData.error) {
+                const errorMessage = resData.error.message || '';
+                console.error(`[ERROR] ${country} (shorts): mostPopular API error:`, resData.error);
+                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || response.status === 403) {
                   quotaExceededRef.current = true;
                   throw new Error('QUOTA_EXCEEDED');
                 }
-                throw new Error(searchData.error.message);
+                throw new Error(resData.error.message);
               }
 
-              const searchItems = searchData.items || [];
-              if (searchItems.length === 0) {
-                console.warn(`[v4.0.0] ${country} (shorts): No shorts found in search results`);
-                console.warn(`[DEBUG] Full search response:`, JSON.stringify(searchData, null, 2));
-                return { country, items: [] };
-              }
+              const allItems = resData.items || [];
 
-              // 2단계: videos.list로 상세 정보 가져오기
-              const videoIds = searchItems.map(item => item.id.videoId).join(',');
-              const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
-              const videosResponse = await fetch(videosUrl);
-              const videosData = await videosResponse.json();
-
-              if (videosData.error) {
-                const errorMessage = videosData.error.message || '';
-                if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || videosResponse.status === 403) {
-                  quotaExceededRef.current = true;
-                  throw new Error('QUOTA_EXCEEDED');
-                }
-                throw new Error(videosData.error.message);
-              }
-
-              const allItems = videosData.items || [];
-              // Duration ≤ 60초만 유지 (search API의 'short'는 4분 미만이므로 추가 필터링 필요)
+              // Duration ≤ 60초만 유지 (Shorts 필터링)
               const filteredItems = allItems.filter(item => {
                 const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
-                return duration > 0 && duration <= 60;
+                const isShorts = duration > 0 && duration <= 60;
+
+                // 디버깅: 처음 5개 항목의 duration 로깅
+                if (filteredItems.length < 5) {
+                  console.log(`[v4.1.0] ${country} video sample:`, {
+                    title: item.snippet.title.substring(0, 50),
+                    duration: duration,
+                    isShorts: isShorts,
+                    rawDuration: item.contentDetails?.duration
+                  });
+                }
+
+                return isShorts;
               });
 
-              console.log(`[v4.0.0] ${country} (shorts): search API returned ${searchItems.length} IDs, videos.list returned ${allItems.length}, after filter: ${filteredItems.length}`);
+              console.log(`[v4.1.0] ${country} (shorts): mostPopular returned ${allItems.length} items, after shorts filter (≤60s): ${filteredItems.length}`);
 
               return { country, items: filteredItems };
             }
