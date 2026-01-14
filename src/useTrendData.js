@@ -76,17 +76,38 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       // [v3.5.4] 아직 로드되지 않은 국가만 필터링
       const countriesToFetch = selectedCountries.filter(country => !loadedCountriesRef.current.has(country));
       
-      if (countriesToFetch.length === 0) {
+      // [v3.7.1] 해제된 국가 확인 (loadedCountriesRef에는 있지만 selectedCountries에는 없는 국가)
+      const deselectedCountries = Array.from(loadedCountriesRef.current).filter(
+        country => !selectedCountries.includes(country)
+      );
+      
+      // [v3.7.1] 해제된 국가가 있으면 loadedCountriesRef에서 제거
+      if (deselectedCountries.length > 0) {
+        console.log(`[v3.7.1] Countries deselected: ${deselectedCountries.join(', ')}`);
+        deselectedCountries.forEach(country => {
+          loadedCountriesRef.current.delete(country);
+        });
+      }
+      
+      // [v3.7.1] 새 국가가 없고 해제된 국가도 없으면 리턴
+      if (countriesToFetch.length === 0 && deselectedCountries.length === 0) {
         console.log(`[v3.5.4] All selected countries already loaded. No new API calls needed.`);
         setIsLoading(false);
         return;
       }
       
-      console.log(`[v3.5.4] Starting data collection for ${countriesToFetch.length} new countries: ${countriesToFetch.join(', ')}`);
-      console.log(`[v3.5.4] Already loaded countries: ${Array.from(loadedCountriesRef.current).join(', ') || 'none'}`);
-      
-      const results = await Promise.allSettled(
-        countriesToFetch.map(async (country) => {
+      // [v3.7.1] 해제된 국가만 있고 새 국가가 없으면 데이터 제거만 수행
+      let results = [];
+      if (countriesToFetch.length === 0 && deselectedCountries.length > 0) {
+        console.log(`[v3.7.1] No new countries to fetch, but removing data for deselected countries`);
+        // API 호출 없이 빈 결과로 처리
+        results = [];
+      } else if (countriesToFetch.length > 0) {
+        console.log(`[v3.5.4] Starting data collection for ${countriesToFetch.length} new countries: ${countriesToFetch.join(', ')}`);
+        console.log(`[v3.5.4] Already loaded countries: ${Array.from(loadedCountriesRef.current).join(', ') || 'none'}`);
+        
+        results = await Promise.allSettled(
+          countriesToFetch.map(async (country) => {
           // [v3.4.4] YouTube API mostPopular는 최대 200개까지만 반환 (500개는 불가능)
           const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
           const response = await fetch(url);
@@ -111,12 +132,13 @@ export const useTrendData = (selectedCountries, enabled = true) => {
             console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
           
-          return { 
+            return { 
             country, 
             items: filteredItems
           };
-        })
-      );
+          })
+        );
+      }
       
       // [v3.5.3] 실패한 국가 확인
       const failedCountries = results
@@ -183,7 +205,10 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       // [v3.5.4] 상세 통계 로그
       console.log(`[v3.5.4] ===== Data Collection Summary =====`);
       console.log(`[v3.5.4] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
-      console.log(`[v3.5.4] New countries fetched: ${countriesToFetch.length} (${countriesToFetch.join(', ')})`);
+      if (deselectedCountries.length > 0) {
+        console.log(`[v3.7.1] Deselected countries: ${deselectedCountries.length} (${deselectedCountries.join(', ')})`);
+      }
+      console.log(`[v3.5.4] New countries fetched: ${countriesToFetch.length} (${countriesToFetch.join(', ') || 'none'})`);
       console.log(`[v3.5.4] Successful countries: ${successfulResults.length}`);
       if (failedCountries.length > 0) {
         console.log(`[v3.5.4] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
@@ -193,6 +218,10 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       console.log(`[v3.5.4] New videos added: ${newItemsCount}`);
       console.log(`[v3.5.4] Total before deduplication: ${totalBeforeDedup}`);
       console.log(`[v3.5.4] Duplicates removed: ${duplicateCount}`);
+      const removedCount = existingDataMap.size - finalData.length;
+      if (removedCount > 0) {
+        console.log(`[v3.7.1] Videos removed (deselected countries): ${removedCount}`);
+      }
       console.log(`[v3.5.4] Final unique videos: ${finalData.length}`);
       console.log(`[v3.5.4] ====================================`);
       
