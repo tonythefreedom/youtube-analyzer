@@ -359,7 +359,7 @@ const App = () => {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-black/40 p-4 rounded-2xl border border-gray-800/50 text-center shadow-lg"><p className="text-[9px] text-gray-500 uppercase font-black mb-1">Cumulative Views</p><p className="text-xl font-black text-white">{(analysis.totalViews / 1000000).toFixed(1)}M</p></div>
-                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800/50 text-center shadow-lg"><p className="text-[9px] text-gray-500 uppercase font-black mb-1">Top Trending</p><p className="text-xl font-black text-primary truncate px-2">{analysis.keywords[0]?.name || '---'}</p></div>
+                  <div className="bg-black/40 p-4 rounded-2xl border border-gray-800/50 text-center shadow-lg"><p className="text-[9px] text-gray-500 uppercase font-black mb-1">Top Trending</p><p className="text-xl font-black text-primary truncate px-2">{analysis.keywords && analysis.keywords.length > 0 ? analysis.keywords[0]?.name : '---'}</p></div>
                 </div>
 
                 {aiStrategy && (
@@ -367,7 +367,7 @@ const App = () => {
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
                       <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
-                        Monthly Trend Insight & 3 Storytelling Angles
+                        Monthly Trend Insight & 6 Diverse Storytelling Angles
                       </h3>
                     </div>
                     
@@ -375,7 +375,7 @@ const App = () => {
                       "{aiStrategy.strategy}"
                     </p>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
                       {aiStrategy.stories?.map((story, sIdx) => (
                         <div key={sIdx} className="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-full hover:border-primary/30 transition-all group shadow-xl relative">
                           <button 

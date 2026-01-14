@@ -88,7 +88,7 @@ const TrendChart = ({ data, onCategoryClick }) => {
         <span className="text-gray-500">(Extended Keyword Analysis)</span>
       </h3>
       {hasData && safeData.length > 0 ? (
-        <div className="w-full h-[500px] relative bg-black/20 rounded-xl overflow-hidden">
+        <div className="w-full h-[500px] relative bg-black/20 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <Treemap
               data={safeData}
@@ -101,15 +101,27 @@ const TrendChart = ({ data, onCategoryClick }) => {
               <Tooltip content={<CustomTooltip />} />
             </Treemap>
           </ResponsiveContainer>
+          {safeData.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-orange-500 text-xs">No valid keyword data to display</p>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="h-[500px] flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-xl">
-          <p className="text-gray-500 text-xs uppercase tracking-widest animate-pulse mb-2">Waiting for AI Analysis...</p>
-          {data && data.length === 0 && (
-            <p className="text-gray-600 text-[10px] mt-2">Click "RUN DEEP ANALYSIS" to generate keyword map</p>
+        <div className="h-[500px] flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-xl bg-black/10">
+          <p className="text-gray-400 text-xs uppercase tracking-widest animate-pulse mb-2">Waiting for AI Analysis...</p>
+          {(!data || data.length === 0) && (
+            <div className="text-center mt-4">
+              <p className="text-gray-500 text-[10px] mb-1">Click "RUN DEEP ANALYSIS" button above</p>
+              <p className="text-gray-600 text-[9px]">to generate keyword trend map</p>
+            </div>
           )}
           {data && data.length > 0 && (
-            <p className="text-orange-500 text-[10px] mt-2">Data received but invalid format. Check console for details.</p>
+            <div className="text-center mt-4">
+              <p className="text-orange-500 text-[10px] mb-1">Data received but invalid format</p>
+              <p className="text-gray-600 text-[9px]">Check browser console for details</p>
+              <p className="text-gray-500 text-[9px] mt-2">Expected format: [{"{name: 'keyword', value: 10-100}"}]</p>
+            </div>
           )}
         </div>
       )}

@@ -291,8 +291,8 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           ? 'top 50 rankings'
           : `rankings ${rankRange}`;
 
-      const prompt = `You are a World-Class YouTube Storytelling Strategist and Trend Analyst.
-      Analyze the trending video data and derive 3 distinct video production strategies (Sub-Stories) based on different storytelling angles.
+      const prompt = `You are a World-Class YouTube Storytelling Strategist and Trend Analyst with deep expertise in content strategy, audience psychology, and cross-cultural content analysis.
+      Analyze the trending video data comprehensively and derive 6 distinct, diverse video production strategies (Sub-Stories) based on completely different storytelling angles and perspectives.
 
       ANALYSIS CONTEXT:
       - Countries: ${countriesInfo}
@@ -304,48 +304,105 @@ export const useTrendData = (selectedCountries, enabled = true) => {
       TREND DATA (${filteredVideos.length} videos):
       ${JSON.stringify(sampleData, null, 2)}
 
-      INSTRUCTIONS:
-      1. Analyze the core trend patterns across the selected countries and date range.
-      2. Identify common themes, content types, and storytelling approaches that are performing well.
-      3. Derive 3 completely different storytelling angles (e.g., Documentary, Review/Analysis, Entertainment/Challenge, Educational, Personal Story, etc.).
-      4. For each angle, provide:
-         - A compelling video title
-         - A detailed concept explaining the storytelling strategy
-         - Key points including story hook, main conflict/point, and call to action
-      5. Select 5 benchmark video indices from the provided data that best represent successful examples.
+      COMPREHENSIVE ANALYSIS INSTRUCTIONS:
+      1. DEEP TREND ANALYSIS:
+         - Analyze core trend patterns across all selected countries and the entire date range
+         - Identify emerging themes, content types, storytelling approaches, and audience preferences
+         - Examine cross-cultural similarities and differences in trending content
+         - Identify underlying psychological triggers, emotional appeals, and engagement patterns
+         - Analyze content formats (long-form vs shorts), genres, and production styles
+         - Consider viewer demographics, watch time patterns, and engagement metrics
+
+      2. MULTI-DIMENSIONAL PERSPECTIVE ANALYSIS:
+         - Content Format Perspective: Long-form documentaries, short-form entertainment, educational content, etc.
+         - Emotional Appeal Perspective: Humor, drama, inspiration, curiosity, controversy, etc.
+         - Audience Segment Perspective: General audience, niche communities, age groups, interests
+         - Production Style Perspective: High-budget professional, authentic low-budget, user-generated feel
+         - Narrative Structure Perspective: Linear storytelling, non-linear, episodic, series format
+         - Platform Strategy Perspective: YouTube-native, cross-platform, viral-focused, community-building
+
+      3. DIVERSE STORYTELLING ANGLES (Generate 6 completely different angles):
+         Each angle must be unique and address the trend from a different perspective:
+         - Angle 1: Documentary/Investigative (deep dive, research-based, factual)
+         - Angle 2: Review/Analysis/Critical (opinion-based, comparative, analytical)
+         - Angle 3: Entertainment/Challenge/Reaction (fun, engaging, interactive)
+         - Angle 4: Educational/Tutorial/How-to (informative, practical, skill-building)
+         - Angle 5: Personal Story/Experience/Testimonial (authentic, relatable, emotional)
+         - Angle 6: Creative/Experimental/Artistic (unique format, innovative, boundary-pushing)
+         
+         IMPORTANT: Ensure each angle offers a completely different approach, target audience, and storytelling method.
+
+      4. FOR EACH OF THE 6 ANGLES, provide:
+         - angle: A clear, descriptive angle name (e.g., "Documentary Deep Dive", "Critical Analysis", "Entertainment Challenge", "Educational Tutorial", "Personal Journey", "Creative Experiment")
+         - title: A compelling, click-worthy video title that reflects the angle
+         - concept: A detailed 3-4 sentence explanation in Korean of:
+           * How this angle uniquely addresses the identified trend
+           * The storytelling strategy and narrative approach
+           * Target audience and their motivations
+           * Why this angle would resonate with viewers
+         - key_points: An array with at least 4-5 key points:
+           * Story Hook (how to grab attention in first 15 seconds)
+           * Main Conflict/Point (core narrative tension or central message)
+           * Supporting Elements (sub-plots, examples, data points)
+           * Emotional Payoff (what viewers will feel/learn)
+           * Call to Action (engagement strategy)
+
+      5. BENCHMARK SELECTION:
+         Select 8-10 benchmark video indices from the provided data that best represent successful examples across different angles and approaches.
 
       Return ONLY a JSON object with this structure:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "A deep, 2-3 sentence summary of the trend analysis in Korean, considering the multi-country and monthly time span context.",
+        "overall_strategy": "A comprehensive 4-5 sentence deep analysis in Korean covering: the core trend patterns, cross-cultural insights, content format trends, audience psychology, and strategic opportunities. Be specific and actionable.",
         "stories": [
           {
-            "angle": "Angle Name (e.g. Documentary)",
+            "angle": "Angle Name 1 (e.g. Documentary Deep Dive)",
             "title": "Video Title",
-            "concept": "Storytelling strategy and concept in Korean, explaining how this angle addresses the identified trend.",
-            "key_points": ["Story Hook", "Main Conflict/Point", "Call to Action"]
+            "concept": "Detailed 3-4 sentence storytelling strategy in Korean",
+            "key_points": ["Story Hook", "Main Conflict/Point", "Supporting Elements", "Emotional Payoff", "Call to Action"]
           },
           {
-            "angle": "Angle Name",
+            "angle": "Angle Name 2 (e.g. Critical Analysis)",
             "title": "Video Title",
             "concept": "...",
-            "key_points": ["...", "...", "..."]
+            "key_points": ["...", "...", "...", "...", "..."]
           },
           {
-            "angle": "Angle Name",
+            "angle": "Angle Name 3 (e.g. Entertainment Challenge)",
             "title": "Video Title",
             "concept": "...",
-            "key_points": ["...", "...", "..."]
+            "key_points": ["...", "...", "...", "...", "..."]
+          },
+          {
+            "angle": "Angle Name 4 (e.g. Educational Tutorial)",
+            "title": "Video Title",
+            "concept": "...",
+            "key_points": ["...", "...", "...", "...", "..."]
+          },
+          {
+            "angle": "Angle Name 5 (e.g. Personal Journey)",
+            "title": "Video Title",
+            "concept": "...",
+            "key_points": ["...", "...", "...", "...", "..."]
+          },
+          {
+            "angle": "Angle Name 6 (e.g. Creative Experiment)",
+            "title": "Video Title",
+            "concept": "...",
+            "key_points": ["...", "...", "...", "...", "..."]
           }
         ],
-        "benchmark_indices": [index1, index2, index3, index4, index5]
+        "benchmark_indices": [index1, index2, index3, index4, index5, index6, index7, index8]
       }
       
-      IMPORTANT:
-      - Extract 30-40 high-value keywords in ENGLISH based on the actual video titles, descriptions, and trends.
-      - All other textual analysis (overall_strategy, stories) must be in KOREAN.
-      - Consider the multi-country context and monthly time span when analyzing trends.
-      - The benchmark indices should reference the actual index numbers from the provided data array.`;
+      CRITICAL REQUIREMENTS:
+      - Extract 40-50 high-value keywords in ENGLISH based on actual video titles, descriptions, and trends
+      - All other textual analysis (overall_strategy, stories) must be in KOREAN
+      - Ensure all 6 angles are completely different from each other in approach, style, and target audience
+      - Provide diverse perspectives: some angles should be serious/analytical, others entertaining/light, some educational, some emotional
+      - Consider the multi-country context and monthly time span when analyzing trends
+      - The benchmark indices should reference actual index numbers from the provided data array
+      - Make the analysis comprehensive, actionable, and strategically valuable`;
       
       const result = await aiModel.generateContent(prompt);
       const rawText = result.response.text().replace(/```json|```/g, '').trim();
@@ -374,7 +431,8 @@ export const useTrendData = (selectedCountries, enabled = true) => {
           .filter(v => v !== undefined);
       }
       
-      if (similar.length === 0) similar = filteredVideos.slice(0, 5);
+      // [v3.6.2] 6개 angles에 맞춰 benchmark도 8-10개로 확장
+      if (similar.length === 0) similar = filteredVideos.slice(0, 8);
 
       setAiStrategy({ 
         strategy: res.overall_strategy, 
