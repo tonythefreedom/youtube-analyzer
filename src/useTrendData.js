@@ -142,43 +142,24 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           
           const allItems = resData.items || [];
 
-          // [v3.8.5] 디버깅: 첫 3개 아이템의 썸네일 정보 로깅
-          if (allItems.length > 0) {
-            console.log(`[DEBUG] ${country}: Checking first 3 items for thumbnail aspect ratios:`);
-            allItems.slice(0, 3).forEach((item, idx) => {
-              const thumb = item.snippet.thumbnails;
-              const high = thumb?.high;
-              const medium = thumb?.medium;
-              const def = thumb?.default;
-              console.log(`[DEBUG] Item ${idx + 1} (${item.snippet.title.substring(0, 50)}...):`);
-              console.log(`  - high: ${high ? `${high.width}x${high.height} (ratio: ${(high.width / high.height).toFixed(2)})` : 'N/A'}`);
-              console.log(`  - medium: ${medium ? `${medium.width}x${medium.height} (ratio: ${(medium.width / medium.height).toFixed(2)})` : 'N/A'}`);
-              console.log(`  - default: ${def ? `${def.width}x${def.height} (ratio: ${(def.width / def.height).toFixed(2)})` : 'N/A'}`);
-            });
-          }
-
-          // [v3.8.4] Shorts 식별: 썸네일 비율만으로 세로 영상 판별 (가장 정확한 방법)
+          // [v3.9.0] Shorts 식별: Duration 기반 (YouTube API 썸네일은 항상 가로 형식이므로 비율 사용 불가)
           const filteredItems = allItems.filter(item => {
-            // 썸네일 비율 체크 (세로 영상 = Shorts)
-            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
+            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
 
-            if (!thumbnail || !thumbnail.width || !thumbnail.height) {
-              // 썸네일 정보 없으면 Long-form으로 간주
-              return currentContentType === 'long';
+            if (duration === 0) {
+              // Duration 정보 없으면 제외
+              return false;
             }
 
-            const aspectRatio = thumbnail.width / thumbnail.height;
-            // 세로 비율: 9:16 = 0.5625, 여유있게 0.8 미만을 세로로 판단
-            const isVertical = aspectRatio < 0.8;
-
-            // Shorts = 세로 영상, Long-form = 가로 영상
-            const isShorts = isVertical;
+            // Shorts: 60초 이하 (YouTube의 공식 Shorts 기준)
+            // Long-form: 60초 초과
+            const isShorts = duration <= 60;
 
             // contentType에 따라 필터링
             return currentContentType === 'long' ? !isShorts : isShorts;
           });
           
-          console.log(`[v3.8.4] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (aspect ratio < 0.8 = vertical/shorts): ${filteredItems.length}`);
+          console.log(`[v3.9.0] ${country}: API returned ${allItems.length} items, after ${currentContentType} filter (duration ≤60s = shorts): ${filteredItems.length}`);
           if (allItems.length < 200) {
             console.warn(`[v3.5.3] ${country}: API returned only ${allItems.length} items instead of 200. This may be due to API limitations or region-specific restrictions.`);
           }
@@ -230,10 +211,9 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           if (!allItemsMap.has(item.id)) {
             newItemsCount++;
 
-            // [v3.8.4] Shorts 판정: 썸네일 비율만으로 판별
-            const thumbnail = item.snippet.thumbnails?.high || item.snippet.thumbnails?.medium || item.snippet.thumbnails?.default;
-            const aspectRatio = thumbnail && thumbnail.width && thumbnail.height ? thumbnail.width / thumbnail.height : 1.78; // 기본값 16:9
-            const isShorts = aspectRatio < 0.8; // 세로 영상 = Shorts
+            // [v3.9.0] Shorts 판정: Duration 기반
+            const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
+            const isShorts = duration > 0 && duration <= 60;
 
             allItemsMap.set(item.id, {
               uniqueId: `yt-${item.id}-${country}`,
