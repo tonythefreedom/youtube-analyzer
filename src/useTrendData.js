@@ -379,6 +379,10 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     }
 
     setIsAiLoading(true);
+    console.log('[AI Analysis] Starting analysis...');
+    console.log('[AI Analysis] Videos to analyze:', filteredVideos.length);
+    const analysisStartTime = Date.now();
+
     try {
       // [v3.5.9] 분석 컨텍스트 정보 수집
       const { selectedCountries = [], rankRange = 'all', dateRange = null, totalVideos = 0 } = analysisContext;
@@ -524,9 +528,19 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       - The benchmark indices should reference actual index numbers from the provided data array
       - Make the analysis comprehensive, actionable, and strategically valuable`;
       
+      console.log('[AI Analysis] Sending request to Gemini API...');
+      console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');
+
       const result = await aiModel.generateContent(prompt);
+      console.log('[AI Analysis] Received response from Gemini API');
+      console.log('[AI Analysis] Response time:', Date.now() - analysisStartTime, 'ms');
+
       const rawText = result.response.text().replace(/```json|```/g, '').trim();
+      console.log('[AI Analysis] Raw text length:', rawText.length, 'characters');
+      console.log('[AI Analysis] Raw text preview:', rawText.substring(0, 200));
+
       const res = JSON.parse(rawText);
+      console.log('[AI Analysis] JSON parsed successfully');
       
       // [v3.6.0] 키워드 데이터 검증 및 로깅
       console.log('[AI Analysis] Raw response:', res);
@@ -604,8 +618,13 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         stories: res.stories, 
         similarVideos: similar 
       });
-    } catch (e) { 
-      console.error("AI Analysis Failed", e); 
+    } catch (e) {
+      console.error("[AI Analysis] FAILED - Error object:", e);
+      console.error("[AI Analysis] Error message:", e.message);
+      console.error("[AI Analysis] Error name:", e.name);
+      console.error("[AI Analysis] Error stack:", e.stack);
+      console.error("[AI Analysis] Time elapsed before error:", Date.now() - analysisStartTime, 'ms');
+
       let errMsg = "AI 분석 실패: API 키 또는 네트워크 상태를 확인해 주세요.";
       
       if (e.message?.includes("404")) {
