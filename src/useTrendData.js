@@ -393,11 +393,11 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       const sampleData = filteredVideos.map((v, index) => ({
         index,
         title: v.title,
-        channel: v.channelTitle,
+        channel: v.channelTitle || v.channel || 'Unknown',
         country: v.country,
         views: v.viewCount,
         publishedAt: v.publishedAt,
-        description: v.description.substring(0, 200) // 설명은 200자까지 확장
+        description: (v.description || '').substring(0, 200) // 설명은 200자까지 확장 (없으면 빈 문자열)
       }));
 
       // 국가 정보 문자열 생성
@@ -719,6 +719,8 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
             uniqueId: `keyword_${country}_${item.id}_${Date.now()}`,
             title: item.snippet?.title || 'Unknown',
             channel: item.snippet?.channelTitle || 'Unknown',
+            channelTitle: item.snippet?.channelTitle || 'Unknown', // AI 분석용
+            description: item.snippet?.description || '', // AI 분석용
             thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
             viewCount: parseInt(item.statistics?.viewCount || '0', 10),
             likeCount: parseInt(item.statistics?.likeCount || '0', 10),
