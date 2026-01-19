@@ -68,7 +68,8 @@ const App = () => {
   );
 
   const handleCopy = (story, index) => {
-    const text = `[Angle ${index + 1}: ${story.angle}]\n\n📌 Title: ${story.title}\n\n💡 Concept:\n${story.concept}\n\n📚 리서치 가이드:\n${story.research_guide || 'N/A'}\n\n🎯 Key Points:\n${story.key_points.map(p => `${p}`).join('\n')}`;
+    const slideText = story.slide_scenario?.map(s => `${s.slide}\n  내용: ${s.content}\n  리서치: ${s.research}`).join('\n\n') || 'N/A';
+    const text = `[Angle ${index + 1}: ${story.angle}]\n\n📌 Title: ${story.title}\n\n💡 Concept: ${story.concept}\n\n🎬 슬라이드 시나리오:\n${slideText}\n\n🎯 Key Points:\n${story.key_points.map(p => `${p}`).join('\n')}`;
     navigator.clipboard.writeText(text);
     setCopiedId(index);
     setTimeout(() => setCopiedId(null), 2000);
@@ -398,13 +399,21 @@ const App = () => {
                           <p className="text-[10px] text-gray-400 leading-relaxed mb-3 italic">
                             {story.concept}
                           </p>
-                          {story.research_guide && (
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
-                              <p className="text-[8px] font-bold text-blue-400 uppercase tracking-wider mb-1">📚 리서치 가이드</p>
-                              <p className="text-[9px] text-blue-200/80 leading-relaxed">{story.research_guide}</p>
+                          {story.slide_scenario && story.slide_scenario.length > 0 && (
+                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 mb-4">
+                              <p className="text-[8px] font-bold text-purple-400 uppercase tracking-wider mb-2">🎬 슬라이드 시나리오</p>
+                              <div className="space-y-2">
+                                {story.slide_scenario.map((s, idx) => (
+                                  <div key={idx} className="text-[9px] border-l-2 border-purple-500/30 pl-2">
+                                    <p className="text-purple-300 font-bold">{s.slide}</p>
+                                    <p className="text-gray-300">{s.content}</p>
+                                    <p className="text-blue-400/80 text-[8px]">📚 {s.research}</p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
-                          <div className="space-y-1.5 mt-auto pt-4 border-t border-white/5">
+                          <div className="space-y-1.5 mt-auto pt-3 border-t border-white/5">
                             {story.key_points?.map((point, pIdx) => (
                               <div key={pIdx} className="flex items-start gap-2">
                                 <span className="text-[9px] text-gray-300 font-medium leading-tight">

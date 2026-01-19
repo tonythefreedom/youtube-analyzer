@@ -415,8 +415,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           ? 'top 50 rankings'
           : `rankings ${rankRange}`;
 
-      const prompt = `You are a World-Class YouTube Growth Strategist delivering a masterclass on maximizing subscribers and engagement.
-      Your PRIMARY GOAL is to help creators convert viewers into subscribers and drive likes/comments.
+      const prompt = `You are a YouTube Content Strategist creating slide-based video production guides.
 
       ANALYSIS CONTEXT:
       - Countries: ${countriesInfo}
@@ -427,12 +426,11 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       TREND DATA (${filteredVideos.length} videos):
       ${JSON.stringify(sampleData, null, 2)}
 
-      ANALYSIS INSTRUCTIONS:
+      INSTRUCTIONS:
 
       1. MONTHLY TREND INSIGHT (overall_strategy):
-         - Start with "이번 달 트렌드에서 구독 전환율을 높이는 핵심은..."
-         - Focus on what content patterns drive SUBSCRIBER GROWTH
-         - Write 5-7 sentences with growth tactics
+         - Start with "이번 달 트렌드 핵심:"
+         - Write 3-4 sentences summarizing key trends
 
       2. 6 STORYTELLING ANGLES:
          - Angle 1: Documentary/Investigative (심층 취재형)
@@ -443,87 +441,88 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
          - Angle 6: Creative/Experimental (크리에이티브형)
 
       3. FOR EACH ANGLE provide:
-         - angle: Angle name in English (e.g., "Documentary Deep Dive")
-         - title: Click-optimized video title wrapped in【】brackets (e.g., "【Hytale: 마인크래프트의 시대가 저물다】")
-         - concept: Growth strategy (4-5 sentences in Korean) starting with "이 전략으로 구독 전환을 높이려면..."
-         - research_guide: (in Korean) 자료 수집 가이드 including:
-           * 검색 키워드 (3-5개)
-           * 참고 사이트/채널 (Reddit, 공식 포럼, 유튜브 채널 등)
-           * 필요한 자료 (통계, 스크린샷, 영상 클립 등)
-           * 인용 소스 (전문가 의견, 커뮤니티 반응 등)
-         - key_points: EXACTLY 6 items with these EXACT emoji prefixes (in Korean):
-           [0] "🎯 Hook (0-30초): [구체적인 오프닝 멘트와 장면 구성]"
-           [1] "📈 Watch Time: [중반 이탈 방지 클리프행어 전략과 타이밍]"
-           [2] "🔄 좋아요 요청 (50-70%): [자연스러운 좋아요 요청 스크립트]"
-           [3] "💬 댓글 유도: [시청자가 답하고 싶은 구체적 질문]"
-           [4] "🔔 구독 CTA: [시리즈 예고 + 구독 요청 엔딩 스크립트]"
-           [5] "📚 리서치 요약: [핵심 자료 수집처 한 줄 정리]"
+         - angle: Angle name in English
+         - title: Video title in【】brackets
+         - concept: ONE sentence summary in Korean
+         - slide_scenario: Array of 5-7 slides for video structure:
+           * slide: Slide title (e.g., "슬라이드 1: 인트로")
+           * content: What to show/say
+           * research: Specific source to find this material
+         - key_points: EXACTLY 4 items:
+           [0] "🎯 Hook (0-30초): [오프닝 멘트와 장면]"
+           [1] "📈 Watch Time: [클리프행어 타이밍]"
+           [2] "🔄 좋아요 요청: [좋아요 요청 스크립트]"
+           [3] "💬 댓글 유도: [구체적 질문]"
 
-      Return ONLY a JSON object:
+      Return ONLY JSON:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "구독자 성장 중심 인사이트 (5-7문장)",
+        "overall_strategy": "이번 달 트렌드 핵심: (3-4문장)",
         "stories": [
           {
             "angle": "Documentary Deep Dive",
-            "title": "【실제 트렌드 기반의 매력적인 컨텐츠 제목】",
-            "concept": "이 전략으로 구독 전환을 높이려면... (4-5문장)",
-            "research_guide": "검색 키워드: Hytale release, 마인크래프트 대안 게임 / 참고: Reddit r/HytaleInfo, 공식 트위터 @Hytale / 필요 자료: 출시 타임라인 인포그래픽, 개발사 인터뷰 영상 / 인용: 게임 저널리스트 리뷰, 유저 기대평",
+            "title": "【컨텐츠 제목】",
+            "concept": "한 줄 전략 설명",
+            "slide_scenario": [
+              {"slide": "슬라이드 1: 인트로", "content": "'마인크래프트 10년, 이제 끝인가?' 충격적 질문으로 시작", "research": "Google Trends - 마인크래프트 vs Hytale 검색량"},
+              {"slide": "슬라이드 2: 배경", "content": "Hytale 소개 및 주목받는 이유", "research": "Hytale 공식 트레일러, Wikipedia"},
+              {"slide": "슬라이드 3: 분석", "content": "마인크래프트와 차별점 3가지", "research": "IGN, GameSpot 비교 기사"},
+              {"slide": "슬라이드 4: 반응", "content": "유저들의 기대와 우려", "research": "Reddit r/HytaleInfo 인기글"},
+              {"slide": "슬라이드 5: 결론", "content": "크리에이터에게 미치는 영향", "research": "마크 유튜버 반응 영상"}
+            ],
             "key_points": [
-              "🎯 Hook (0-30초): '여러분, 10년을 기다린 게임이 드디어 나옵니다' 멘트와 함께 가장 임팩트 있는 게임플레이 장면 3초 컷",
-              "📈 Watch Time: 5분 지점 '근데 여기서 문제가 생깁니다...' 반전 예고, 10분 지점 '아직 안 끝났어요' 추가 정보 티징",
-              "🔄 좋아요 요청 (50-70%): '여기까지 보신 분들, 이런 심층 분석 영상이 도움 되셨다면 좋아요 한 번만 눌러주세요. 알고리즘에 큰 힘이 됩니다!'",
-              "💬 댓글 유도: '여러분은 Hytale 출시하면 마인크래프트 떠나실 건가요? 아니면 둘 다 하실 건가요? 댓글로 알려주세요!'",
-              "🔔 구독 CTA: '다음 주에는 Hytale 실제 플레이 심층 리뷰가 올라옵니다. 놓치고 싶지 않으시면 구독과 알림 설정 꼭 해주세요!'",
-              "📚 리서치 요약: Hytale 공식 블로그 + Reddit r/HytaleInfo + 개발사 Hypixel Studios 트위터"
+              "🎯 Hook (0-30초): '10년 절대왕좌 마인크래프트, 도전자 등장' + 하이라이트 3초",
+              "📈 Watch Time: 4분 '문제가 있습니다...', 8분 '반전'",
+              "🔄 좋아요 요청: '분석 도움 되셨으면 좋아요!'",
+              "💬 댓글 유도: 'Hytale 나오면 마크 떠나실?"
             ]
           },
           {
             "angle": "Critical Analysis",
             "title": "【...】",
             "concept": "...",
-            "research_guide": "...",
-            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
+            "slide_scenario": [{"slide": "...", "content": "...", "research": "..."}],
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Entertainment Challenge",
             "title": "【...】",
             "concept": "...",
-            "research_guide": "...",
-            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
+            "slide_scenario": [],
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Educational Tutorial",
             "title": "【...】",
             "concept": "...",
-            "research_guide": "...",
-            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
+            "slide_scenario": [],
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Personal Journey",
             "title": "【...】",
             "concept": "...",
-            "research_guide": "...",
-            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
+            "slide_scenario": [],
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Creative Experiment",
             "title": "【...】",
             "concept": "...",
-            "research_guide": "...",
-            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
+            "slide_scenario": [],
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           }
         ],
         "benchmark_indices": [0, 1, 2, 3, 4, 5, 6, 7]
       }
 
-      STRICT REQUIREMENTS:
-      - title MUST be wrapped in【】brackets
-      - key_points MUST have EXACTLY 6 items starting with: 🎯, 📈, 🔄, 💬, 🔔, 📚
-      - Each key_point MUST include specific, copy-paste ready Korean scripts
-      - research_guide MUST include: 검색 키워드, 참고 사이트, 필요 자료, 인용 소스
-      - ALL text except keywords must be in KOREAN
-      - Every script must be specific to the trend topic, NOT generic advice`;
+      REQUIREMENTS:
+      - title in【】brackets
+      - concept: ONE sentence only
+      - slide_scenario: 5-7 slides with specific research sources per slide
+      - key_points: EXACTLY 4 items (🎯, 📈, 🔄, 💬)
+      - ALL Korean except keywords/angle
+      - Specific to trend data`;
       
       console.log('[AI Analysis] Sending request to Gemini API...');
       console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');
