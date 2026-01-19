@@ -147,29 +147,47 @@ const App = () => {
 
   // [v3.5.0] 국가 토글 선택 (복수 선택 가능)
   // [v3.5.1] 최소 1개 제한 제거 - 모든 국가를 선택/해제 가능
+  // [v4.2.1] 키워드 검색 모드일 때 국가 변경 시 자동으로 재검색
   const toggleCountry = (code) => {
     setSelectedCountries(prev => {
-      if (prev.includes(code)) {
-        // 이미 선택된 경우 제거
-        return prev.filter(c => c !== code);
-      } else {
-        // 선택되지 않은 경우 추가
-        return [...prev, code];
+      const newCountries = prev.includes(code)
+        ? prev.filter(c => c !== code)
+        : [...prev, code];
+
+      // [v4.2.1] 키워드 검색 모드이고 새 국가가 추가된 경우 재검색
+      if (searchMode === 'keyword' && currentKeyword && !prev.includes(code) && newCountries.length > 0) {
+        // 약간의 지연 후 새 국가 목록으로 재검색
+        setTimeout(() => {
+          searchByKeyword(currentKeyword, newCountries);
+        }, 100);
       }
+
+      return newCountries;
     });
   };
 
   // [v3.5.1] 전체 선택/해제 기능
+  // [v4.2.1] 키워드 검색 모드일 때 전체 선택 시 재검색
   const toggleAllCountries = () => {
     const allCountryCodes = Object.keys(countries);
     const allSelected = allCountryCodes.every(code => selectedCountries.includes(code));
-    
+
+    let newCountries;
     if (allSelected) {
       // 모두 선택된 경우 모두 해제 (하지만 최소 1개는 유지)
-      setSelectedCountries([allCountryCodes[0]]);
+      newCountries = [allCountryCodes[0]];
     } else {
       // 일부만 선택된 경우 모두 선택
-      setSelectedCountries(allCountryCodes);
+      newCountries = allCountryCodes;
+    }
+
+    setSelectedCountries(newCountries);
+
+    // [v4.2.1] 키워드 검색 모드일 때 재검색
+    if (searchMode === 'keyword' && currentKeyword) {
+      setTimeout(() => {
+        searchByKeyword(currentKeyword, newCountries);
+      }, 100);
     }
   };
 
