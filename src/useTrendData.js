@@ -415,8 +415,8 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           ? 'top 50 rankings'
           : `rankings ${rankRange}`;
 
-      const prompt = `You are a World-Class YouTube Content Strategy Professor and Trend Analyst delivering a lecture-style presentation.
-      Your role is to analyze trending video data and present insights as if you're teaching a masterclass to content creators.
+      const prompt = `You are a World-Class YouTube Growth Strategist and Conversion Expert delivering a masterclass on maximizing subscribers and engagement.
+      Your PRIMARY GOAL is to help creators convert viewers into subscribers and drive likes/comments.
       Speak directly to the audience in a professional yet engaging lecture tone.
 
       ANALYSIS CONTEXT:
@@ -429,88 +429,95 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       TREND DATA (${filteredVideos.length} videos):
       ${JSON.stringify(sampleData, null, 2)}
 
-      LECTURE-STYLE ANALYSIS INSTRUCTIONS:
+      GROWTH-FOCUSED ANALYSIS INSTRUCTIONS:
 
       1. MONTHLY TREND INSIGHT (overall_strategy):
-         Write as if you're opening a lecture, directly addressing content creators:
-         - Start with "이번 달 트렌드를 분석해보면..." or similar engaging opener
-         - Explain the KEY INSIGHT from this month's data in a teaching tone
-         - Point out specific patterns and what they mean for creators
-         - Use phrases like "주목해야 할 점은...", "특히 눈여겨볼 부분은...", "이것이 의미하는 바는..."
-         - Conclude with actionable takeaway for the audience
-         - Write 5-7 sentences in a conversational lecture style
+         Write as if you're opening a lecture on "이번 달, 구독자를 폭발시키는 트렌드":
+         - Start with "이번 달 트렌드에서 구독 전환율을 높이는 핵심은..." or similar growth-focused opener
+         - Explain what content patterns are driving the most SUBSCRIBER GROWTH
+         - Point out specific engagement triggers that make viewers hit subscribe
+         - Use phrases like "구독으로 연결되는 포인트는...", "좋아요를 부르는 요소는...", "시청자가 구독 버튼을 누르는 순간은..."
+         - Conclude with a specific subscriber conversion strategy
+         - Write 5-7 sentences focusing on GROWTH TACTICS
 
-      2. 6 STORYTELLING ANGLES (as lecture slides):
-         Present each angle as if it's a slide in your masterclass presentation.
-         Each angle represents a different strategic approach you're teaching to your students.
+      2. 6 STORYTELLING ANGLES (as growth strategy slides):
+         Present each angle as a subscriber conversion strategy.
+         Focus on HOW each angle can maximize likes, comments, and subscriptions.
 
          The 6 angles to cover:
-         - Angle 1: Documentary/Investigative (심층 취재형)
-         - Angle 2: Review/Analysis/Critical (리뷰/분석형)
-         - Angle 3: Entertainment/Challenge (엔터테인먼트형)
-         - Angle 4: Educational/Tutorial (교육/튜토리얼형)
-         - Angle 5: Personal Story/Vlog (개인 스토리형)
-         - Angle 6: Creative/Experimental (크리에이티브형)
+         - Angle 1: Documentary/Investigative (심층 취재형) - 전문성으로 구독 유도
+         - Angle 2: Review/Analysis/Critical (리뷰/분석형) - 신뢰로 구독 유도
+         - Angle 3: Entertainment/Challenge (엔터테인먼트형) - 재미로 구독 유도
+         - Angle 4: Educational/Tutorial (교육/튜토리얼형) - 가치로 구독 유도
+         - Angle 5: Personal Story/Vlog (개인 스토리형) - 공감으로 구독 유도
+         - Angle 6: Creative/Experimental (크리에이티브형) - 독창성으로 구독 유도
 
-      3. FOR EACH ANGLE, provide lecture-style content:
-         - angle: Angle name in English (e.g., "Documentary Deep Dive")
-         - title: An example video title demonstrating this angle
-         - concept: Write as if explaining this slide to students (4-5 sentences in Korean):
-           * "이 앵글은..." 또는 "이 전략의 핵심은..." 으로 시작
-           * Explain WHY this angle works for the current trend
-           * Describe the storytelling approach as if teaching it
-           * Give specific advice on execution
-           * Use lecture phrases: "포인트는...", "여기서 중요한 건...", "이렇게 접근하면..."
-         - key_points: 5 tactical points as lecture bullet points:
-           * 📌 Hook Strategy: How to open the video
-           * 📌 Core Message: The main point to convey
-           * 📌 Content Structure: How to organize the narrative
-           * 📌 Emotional Connection: How to engage viewers
-           * 📌 CTA Strategy: How to drive engagement
+      3. FOR EACH ANGLE, provide GROWTH-OPTIMIZED content:
+         - angle: Angle name in English
+         - title: A click-optimized video title (curiosity gap + value proposition)
+         - concept: Write as a growth strategy lecture (4-5 sentences in Korean):
+           * "이 전략으로 구독 전환을 높이려면..." 으로 시작
+           * Explain the PSYCHOLOGICAL TRIGGER that makes viewers subscribe
+           * Describe the specific moment when viewers feel "구독해야겠다"
+           * Give concrete subscriber conversion tactics
+           * Use phrases: "구독을 부르는 포인트는...", "여기서 좋아요가 터지는 이유는..."
+
+         - key_points: 5 GROWTH-FOCUSED tactical points:
+           * 🎯 0-30초 Hook: 첫 30초 안에 "이 채널 뭐지?" 호기심 유발 + 이탈 방지 전략 (구체적인 오프닝 멘트/장면 제안)
+           * 📈 Watch Time 극대화: 영상 중반 이탈 방지를 위한 "미니 클리프행어" 배치 전략 (예: "잠깐, 이건 꼭 보셔야 해요" 타이밍)
+           * 🔄 리텐션 포인트: 영상 50-70% 지점에서 "좋아요" 자연스럽게 요청하는 구체적 멘트 (예: "여기까지 보신 분들, 좋아요 한번만!")
+           * 💬 댓글 유도 트리거: 시청자가 댓글을 달 수밖에 없는 질문/논쟁점 설계 (구체적인 질문 예시 제공)
+           * 🔔 구독 전환 전략: 영상 마지막 "구독 안 하면 손해"라고 느끼게 하는 시리즈 예고 + CTA 멘트 (구체적인 엔딩 스크립트)
 
       4. BENCHMARK SELECTION:
-         Select 8-10 video indices that best exemplify successful strategies across different angles.
+         Select 8-10 video indices that show the best engagement patterns and likely drove high subscriber conversion.
 
       Return ONLY a JSON object with this structure:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "강의식 월간 트렌드 인사이트 (5-7문장, 청중에게 직접 설명하는 톤)",
+        "overall_strategy": "구독자 성장 중심의 월간 트렌드 인사이트 (5-7문장)",
         "stories": [
           {
             "angle": "Documentary Deep Dive",
             "title": "Example Video Title",
-            "concept": "강의식 설명 (4-5문장): 이 앵글은... 포인트는... 이렇게 접근하면...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "concept": "구독 전환 전략 설명 (4-5문장): 이 전략으로 구독 전환을 높이려면...",
+            "key_points": [
+              "🎯 0-30초 Hook: 구체적인 오프닝 전략과 예시 멘트",
+              "📈 Watch Time: 중반 이탈 방지 미니 클리프행어 전략",
+              "🔄 리텐션 포인트: 좋아요 요청 타이밍과 구체적 멘트 예시",
+              "💬 댓글 트리거: 시청자 참여를 유도하는 구체적 질문",
+              "🔔 구독 전환: 시리즈 예고와 구독 CTA 스크립트"
+            ]
           },
           {
             "angle": "Critical Analysis",
             "title": "...",
             "concept": "...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
           },
           {
             "angle": "Entertainment Challenge",
             "title": "...",
             "concept": "...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
           },
           {
             "angle": "Educational Tutorial",
             "title": "...",
             "concept": "...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
           },
           {
             "angle": "Personal Journey",
             "title": "...",
             "concept": "...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
           },
           {
             "angle": "Creative Experiment",
             "title": "...",
             "concept": "...",
-            "key_points": ["📌 Hook: ...", "📌 Core: ...", "📌 Structure: ...", "📌 Emotion: ...", "📌 CTA: ..."]
+            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
           }
         ],
         "benchmark_indices": [index1, index2, index3, index4, index5, index6, index7, index8]
@@ -518,11 +525,14 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
 
       CRITICAL REQUIREMENTS:
       - Extract 40-50 high-value keywords in ENGLISH based on actual video titles and trends
-      - ALL explanatory text (overall_strategy, concept) must be in KOREAN with a LECTURE TONE
-      - Write as if you're a professor teaching a masterclass, not writing a report
-      - Use direct address to the audience: "여러분", "주목하세요", "기억하세요"
-      - Each angle must offer genuinely different strategic value
-      - Make insights specific to the actual data, not generic advice
+      - ALL explanatory text (overall_strategy, concept, key_points) must be in KOREAN
+      - EVERY key_point must include SPECIFIC, ACTIONABLE scripts or examples (not generic advice)
+      - Focus on CONVERSION: every strategy should answer "how does this get more subscribers?"
+      - Include actual example phrases/scripts that creators can directly use
+      - 🎯 Hook must include a sample opening line
+      - 🔄 리텐션 must include exact timing and sample "좋아요" request script
+      - 🔔 구독 전환 must include a complete ending CTA script
+      - Make insights specific to the actual trending data, not generic YouTube advice
       - The benchmark indices should reference actual index numbers from the provided data array`;
       
       console.log('[AI Analysis] Sending request to Gemini API...');
