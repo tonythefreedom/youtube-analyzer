@@ -415,125 +415,115 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           ? 'top 50 rankings'
           : `rankings ${rankRange}`;
 
-      const prompt = `You are a World-Class YouTube Growth Strategist and Conversion Expert delivering a masterclass on maximizing subscribers and engagement.
+      const prompt = `You are a World-Class YouTube Growth Strategist delivering a masterclass on maximizing subscribers and engagement.
       Your PRIMARY GOAL is to help creators convert viewers into subscribers and drive likes/comments.
-      Speak directly to the audience in a professional yet engaging lecture tone.
 
       ANALYSIS CONTEXT:
       - Countries: ${countriesInfo}
       - Date Range: ${dateInfo}
       - Rank Range: ${rankInfo}
       - Total Videos Analyzed: ${filteredVideos.length} out of ${totalVideos} total collected videos
-      - Data Source: YouTube Trending Videos API
 
       TREND DATA (${filteredVideos.length} videos):
       ${JSON.stringify(sampleData, null, 2)}
 
-      GROWTH-FOCUSED ANALYSIS INSTRUCTIONS:
+      ANALYSIS INSTRUCTIONS:
 
       1. MONTHLY TREND INSIGHT (overall_strategy):
-         Write as if you're opening a lecture on "이번 달, 구독자를 폭발시키는 트렌드":
-         - Start with "이번 달 트렌드에서 구독 전환율을 높이는 핵심은..." or similar growth-focused opener
-         - Explain what content patterns are driving the most SUBSCRIBER GROWTH
-         - Point out specific engagement triggers that make viewers hit subscribe
-         - Use phrases like "구독으로 연결되는 포인트는...", "좋아요를 부르는 요소는...", "시청자가 구독 버튼을 누르는 순간은..."
-         - Conclude with a specific subscriber conversion strategy
-         - Write 5-7 sentences focusing on GROWTH TACTICS
+         - Start with "이번 달 트렌드에서 구독 전환율을 높이는 핵심은..."
+         - Focus on what content patterns drive SUBSCRIBER GROWTH
+         - Write 5-7 sentences with growth tactics
 
-      2. 6 STORYTELLING ANGLES (as growth strategy slides):
-         Present each angle as a subscriber conversion strategy.
-         Focus on HOW each angle can maximize likes, comments, and subscriptions.
+      2. 6 STORYTELLING ANGLES:
+         - Angle 1: Documentary/Investigative (심층 취재형)
+         - Angle 2: Review/Analysis/Critical (리뷰/분석형)
+         - Angle 3: Entertainment/Challenge (엔터테인먼트형)
+         - Angle 4: Educational/Tutorial (교육/튜토리얼형)
+         - Angle 5: Personal Story/Vlog (개인 스토리형)
+         - Angle 6: Creative/Experimental (크리에이티브형)
 
-         The 6 angles to cover:
-         - Angle 1: Documentary/Investigative (심층 취재형) - 전문성으로 구독 유도
-         - Angle 2: Review/Analysis/Critical (리뷰/분석형) - 신뢰로 구독 유도
-         - Angle 3: Entertainment/Challenge (엔터테인먼트형) - 재미로 구독 유도
-         - Angle 4: Educational/Tutorial (교육/튜토리얼형) - 가치로 구독 유도
-         - Angle 5: Personal Story/Vlog (개인 스토리형) - 공감으로 구독 유도
-         - Angle 6: Creative/Experimental (크리에이티브형) - 독창성으로 구독 유도
+      3. FOR EACH ANGLE provide:
+         - angle: Angle name in English (e.g., "Documentary Deep Dive")
+         - title: Click-optimized video title wrapped in【】brackets (e.g., "【Hytale: 마인크래프트의 시대가 저물다】")
+         - concept: Growth strategy (4-5 sentences in Korean) starting with "이 전략으로 구독 전환을 높이려면..."
+         - research_guide: (in Korean) 자료 수집 가이드 including:
+           * 검색 키워드 (3-5개)
+           * 참고 사이트/채널 (Reddit, 공식 포럼, 유튜브 채널 등)
+           * 필요한 자료 (통계, 스크린샷, 영상 클립 등)
+           * 인용 소스 (전문가 의견, 커뮤니티 반응 등)
+         - key_points: EXACTLY 6 items with these EXACT emoji prefixes (in Korean):
+           [0] "🎯 Hook (0-30초): [구체적인 오프닝 멘트와 장면 구성]"
+           [1] "📈 Watch Time: [중반 이탈 방지 클리프행어 전략과 타이밍]"
+           [2] "🔄 좋아요 요청 (50-70%): [자연스러운 좋아요 요청 스크립트]"
+           [3] "💬 댓글 유도: [시청자가 답하고 싶은 구체적 질문]"
+           [4] "🔔 구독 CTA: [시리즈 예고 + 구독 요청 엔딩 스크립트]"
+           [5] "📚 리서치 요약: [핵심 자료 수집처 한 줄 정리]"
 
-      3. FOR EACH ANGLE, provide GROWTH-OPTIMIZED content:
-         - angle: Angle name in English
-         - title: A click-optimized video title (curiosity gap + value proposition)
-         - concept: Write as a growth strategy lecture (4-5 sentences in Korean):
-           * "이 전략으로 구독 전환을 높이려면..." 으로 시작
-           * Explain the PSYCHOLOGICAL TRIGGER that makes viewers subscribe
-           * Describe the specific moment when viewers feel "구독해야겠다"
-           * Give concrete subscriber conversion tactics
-           * Use phrases: "구독을 부르는 포인트는...", "여기서 좋아요가 터지는 이유는..."
-
-         - key_points: 5 GROWTH-FOCUSED tactical points:
-           * 🎯 0-30초 Hook: 첫 30초 안에 "이 채널 뭐지?" 호기심 유발 + 이탈 방지 전략 (구체적인 오프닝 멘트/장면 제안)
-           * 📈 Watch Time 극대화: 영상 중반 이탈 방지를 위한 "미니 클리프행어" 배치 전략 (예: "잠깐, 이건 꼭 보셔야 해요" 타이밍)
-           * 🔄 리텐션 포인트: 영상 50-70% 지점에서 "좋아요" 자연스럽게 요청하는 구체적 멘트 (예: "여기까지 보신 분들, 좋아요 한번만!")
-           * 💬 댓글 유도 트리거: 시청자가 댓글을 달 수밖에 없는 질문/논쟁점 설계 (구체적인 질문 예시 제공)
-           * 🔔 구독 전환 전략: 영상 마지막 "구독 안 하면 손해"라고 느끼게 하는 시리즈 예고 + CTA 멘트 (구체적인 엔딩 스크립트)
-
-      4. BENCHMARK SELECTION:
-         Select 8-10 video indices that show the best engagement patterns and likely drove high subscriber conversion.
-
-      Return ONLY a JSON object with this structure:
+      Return ONLY a JSON object:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "구독자 성장 중심의 월간 트렌드 인사이트 (5-7문장)",
+        "overall_strategy": "구독자 성장 중심 인사이트 (5-7문장)",
         "stories": [
           {
             "angle": "Documentary Deep Dive",
-            "title": "Example Video Title",
-            "concept": "구독 전환 전략 설명 (4-5문장): 이 전략으로 구독 전환을 높이려면...",
+            "title": "【실제 트렌드 기반의 매력적인 컨텐츠 제목】",
+            "concept": "이 전략으로 구독 전환을 높이려면... (4-5문장)",
+            "research_guide": "검색 키워드: Hytale release, 마인크래프트 대안 게임 / 참고: Reddit r/HytaleInfo, 공식 트위터 @Hytale / 필요 자료: 출시 타임라인 인포그래픽, 개발사 인터뷰 영상 / 인용: 게임 저널리스트 리뷰, 유저 기대평",
             "key_points": [
-              "🎯 0-30초 Hook: 구체적인 오프닝 전략과 예시 멘트",
-              "📈 Watch Time: 중반 이탈 방지 미니 클리프행어 전략",
-              "🔄 리텐션 포인트: 좋아요 요청 타이밍과 구체적 멘트 예시",
-              "💬 댓글 트리거: 시청자 참여를 유도하는 구체적 질문",
-              "🔔 구독 전환: 시리즈 예고와 구독 CTA 스크립트"
+              "🎯 Hook (0-30초): '여러분, 10년을 기다린 게임이 드디어 나옵니다' 멘트와 함께 가장 임팩트 있는 게임플레이 장면 3초 컷",
+              "📈 Watch Time: 5분 지점 '근데 여기서 문제가 생깁니다...' 반전 예고, 10분 지점 '아직 안 끝났어요' 추가 정보 티징",
+              "🔄 좋아요 요청 (50-70%): '여기까지 보신 분들, 이런 심층 분석 영상이 도움 되셨다면 좋아요 한 번만 눌러주세요. 알고리즘에 큰 힘이 됩니다!'",
+              "💬 댓글 유도: '여러분은 Hytale 출시하면 마인크래프트 떠나실 건가요? 아니면 둘 다 하실 건가요? 댓글로 알려주세요!'",
+              "🔔 구독 CTA: '다음 주에는 Hytale 실제 플레이 심층 리뷰가 올라옵니다. 놓치고 싶지 않으시면 구독과 알림 설정 꼭 해주세요!'",
+              "📚 리서치 요약: Hytale 공식 블로그 + Reddit r/HytaleInfo + 개발사 Hypixel Studios 트위터"
             ]
           },
           {
             "angle": "Critical Analysis",
-            "title": "...",
+            "title": "【...】",
             "concept": "...",
-            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
+            "research_guide": "...",
+            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
           },
           {
             "angle": "Entertainment Challenge",
-            "title": "...",
+            "title": "【...】",
             "concept": "...",
-            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
+            "research_guide": "...",
+            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
           },
           {
             "angle": "Educational Tutorial",
-            "title": "...",
+            "title": "【...】",
             "concept": "...",
-            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
+            "research_guide": "...",
+            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
           },
           {
             "angle": "Personal Journey",
-            "title": "...",
+            "title": "【...】",
             "concept": "...",
-            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
+            "research_guide": "...",
+            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
           },
           {
             "angle": "Creative Experiment",
-            "title": "...",
+            "title": "【...】",
             "concept": "...",
-            "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ...", "🔔 ..."]
+            "research_guide": "...",
+            "key_points": ["🎯 Hook (0-30초): ...", "📈 Watch Time: ...", "🔄 좋아요 요청 (50-70%): ...", "💬 댓글 유도: ...", "🔔 구독 CTA: ...", "📚 리서치 요약: ..."]
           }
         ],
-        "benchmark_indices": [index1, index2, index3, index4, index5, index6, index7, index8]
+        "benchmark_indices": [0, 1, 2, 3, 4, 5, 6, 7]
       }
 
-      CRITICAL REQUIREMENTS:
-      - Extract 40-50 high-value keywords in ENGLISH based on actual video titles and trends
-      - ALL explanatory text (overall_strategy, concept, key_points) must be in KOREAN
-      - EVERY key_point must include SPECIFIC, ACTIONABLE scripts or examples (not generic advice)
-      - Focus on CONVERSION: every strategy should answer "how does this get more subscribers?"
-      - Include actual example phrases/scripts that creators can directly use
-      - 🎯 Hook must include a sample opening line
-      - 🔄 리텐션 must include exact timing and sample "좋아요" request script
-      - 🔔 구독 전환 must include a complete ending CTA script
-      - Make insights specific to the actual trending data, not generic YouTube advice
-      - The benchmark indices should reference actual index numbers from the provided data array`;
+      STRICT REQUIREMENTS:
+      - title MUST be wrapped in【】brackets
+      - key_points MUST have EXACTLY 6 items starting with: 🎯, 📈, 🔄, 💬, 🔔, 📚
+      - Each key_point MUST include specific, copy-paste ready Korean scripts
+      - research_guide MUST include: 검색 키워드, 참고 사이트, 필요 자료, 인용 소스
+      - ALL text except keywords must be in KOREAN
+      - Every script must be specific to the trend topic, NOT generic advice`;
       
       console.log('[AI Analysis] Sending request to Gemini API...');
       console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');

@@ -68,7 +68,7 @@ const App = () => {
   );
 
   const handleCopy = (story, index) => {
-    const text = `[Angle ${index + 1}: ${story.angle}]\nTitle: ${story.title}\nConcept: ${story.concept}\nKey Points:\n${story.key_points.map(p => `- ${p}`).join('\n')}`;
+    const text = `[Angle ${index + 1}: ${story.angle}]\n\n📌 Title: ${story.title}\n\n💡 Concept:\n${story.concept}\n\n📚 리서치 가이드:\n${story.research_guide || 'N/A'}\n\n🎯 Key Points:\n${story.key_points.map(p => `${p}`).join('\n')}`;
     navigator.clipboard.writeText(text);
     setCopiedId(index);
     setTimeout(() => setCopiedId(null), 2000);
@@ -395,13 +395,18 @@ const App = () => {
                           <h4 className="text-[11px] font-black text-white mb-2 leading-tight uppercase group-hover:text-primary transition-colors">
                             {story.title}
                           </h4>
-                          <p className="text-[10px] text-gray-400 leading-relaxed mb-4 flex-grow italic">
+                          <p className="text-[10px] text-gray-400 leading-relaxed mb-3 italic">
                             {story.concept}
                           </p>
+                          {story.research_guide && (
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
+                              <p className="text-[8px] font-bold text-blue-400 uppercase tracking-wider mb-1">📚 리서치 가이드</p>
+                              <p className="text-[9px] text-blue-200/80 leading-relaxed">{story.research_guide}</p>
+                            </div>
+                          )}
                           <div className="space-y-1.5 mt-auto pt-4 border-t border-white/5">
                             {story.key_points?.map((point, pIdx) => (
                               <div key={pIdx} className="flex items-start gap-2">
-                                <span className="text-primary text-[10px] mt-0.5">•</span>
                                 <span className="text-[9px] text-gray-300 font-medium leading-tight">
                                   {point}
                                 </span>
