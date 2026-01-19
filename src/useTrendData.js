@@ -32,6 +32,8 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
   const [aiStrategy, setAiStrategy] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState("idle");
+  const [searchMode, setSearchMode] = useState('trending'); // [v4.2.0] 'trending' or 'keyword'
+  const [currentKeyword, setCurrentKeyword] = useState(''); // [v4.2.0] 현재 검색 키워드
   const quotaExceededRef = useRef(false); // 할당량 초과 플래그
   const hasLoadedRef = useRef(false); // 로그인 후 한 번만 로드하기 위한 플래그
   const loadedCountriesRef = useRef(new Set()); // [v3.5.4] 이미 로드된 국가 추적
@@ -637,6 +639,163 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     }
   };
 
+  // [v4.2.0] 키워드 검색 함수 (선택된 국가별로 검색)
+  const searchByKeyword = useCallback(async (keyword, countries = selectedCountries) => {
+    if (!keyword || keyword.trim() === '') {
+      alert('검색 키워드를 입력해주세요.');
+      return;
+    }
+
+    if (!countries || countries.length === 0) {
+      alert('검색할 국가를 선택해주세요.');
+      return;
+    }
+
+    if (quotaExceededRef.current) {
+      alert("YouTube API 할당량이 초과되었습니다.");
+      return;
+    }
+
+    if (!YOUTUBE_API_KEY) {
+      alert("YouTube API 키가 설정되지 않았습니다.");
+      return;
+    }
+
+    setIsLoading(true);
+    setApiStatus("loading");
+    setSearchMode('keyword');
+    setCurrentKeyword(keyword.trim());
+
+    try {
+      console.log(`[v4.2.0] Keyword search: "${keyword}" for countries: ${countries.join(', ')}`);
+
+      // 각 국가별로 검색 수행
+      const results = await Promise.allSettled(
+        countries.map(async (country) => {
+          // Step 1: Search API로 비디오 ID 가져오기 (국가별 최대 50개)
+          const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(keyword)}&order=viewCount&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+
+          console.log(`[v4.2.0] Searching "${keyword}" in ${country}...`);
+          const searchResponse = await fetch(searchUrl);
+          const searchData = await searchResponse.json();
+
+          if (searchData.error) {
+            const errorMessage = searchData.error.message || '';
+            if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || searchResponse.status === 403) {
+              quotaExceededRef.current = true;
+              throw new Error('QUOTA_EXCEEDED');
+            }
+            throw new Error(searchData.error.message);
+          }
+
+          const searchItems = searchData.items || [];
+          console.log(`[v4.2.0] ${country}: Search returned ${searchItems.length} results`);
+
+          if (searchItems.length === 0) {
+            return { country, items: [] };
+          }
+
+          // Step 2: Videos API로 상세 정보 가져오기
+          const videoIds = searchItems.map(item => item.id.videoId).join(',');
+          const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+
+          const videosResponse = await fetch(videosUrl);
+          const videosData = await videosResponse.json();
+
+          if (videosData.error) {
+            const errorMessage = videosData.error.message || '';
+            if (errorMessage.includes('quota') || errorMessage.includes('exceeded') || videosResponse.status === 403) {
+              quotaExceededRef.current = true;
+              throw new Error('QUOTA_EXCEEDED');
+            }
+            throw new Error(videosData.error.message);
+          }
+
+          const videoItems = videosData.items || [];
+
+          // 데이터 가공
+          const processedVideos = videoItems.map((item, index) => ({
+            id: item.id,
+            uniqueId: `keyword_${country}_${item.id}_${Date.now()}`,
+            title: item.snippet?.title || 'Unknown',
+            channel: item.snippet?.channelTitle || 'Unknown',
+            thumbnail: item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || '',
+            viewCount: parseInt(item.statistics?.viewCount || '0', 10),
+            likeCount: parseInt(item.statistics?.likeCount || '0', 10),
+            commentCount: parseInt(item.statistics?.commentCount || '0', 10),
+            publishedAt: item.snippet?.publishedAt || '',
+            duration: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0,
+            country: country,
+            rank: index + 1,
+            searchKeyword: keyword.trim()
+          }));
+
+          console.log(`[v4.2.0] ${country}: Got ${processedVideos.length} videos`);
+          return { country, items: processedVideos };
+        })
+      );
+
+      // 결과 처리
+      let allVideos = [];
+      const countryBreakdown = {};
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value.items) {
+          const { country, items } = result.value;
+          allVideos = allVideos.concat(items);
+          countryBreakdown[country] = items.length;
+        }
+      });
+
+      // 중복 제거 (같은 비디오가 여러 국가에서 검색될 수 있음)
+      const seen = new Set();
+      const uniqueVideos = allVideos.filter(video => {
+        if (seen.has(video.id)) return false;
+        seen.add(video.id);
+        return true;
+      });
+
+      console.log(`[v4.2.0] Keyword search complete: ${uniqueVideos.length} unique videos for "${keyword}"`);
+      console.log(`[v4.2.0] Country breakdown:`, countryBreakdown);
+
+      if (uniqueVideos.length === 0) {
+        alert(`"${keyword}"에 대한 검색 결과가 없습니다.`);
+        setIsLoading(false);
+        setApiStatus("success");
+        return;
+      }
+
+      // 조회수 순으로 정렬
+      uniqueVideos.sort((a, b) => b.viewCount - a.viewCount);
+
+      // 기존 데이터 교체
+      setData(uniqueVideos);
+      dataRef.current = uniqueVideos;
+      loadedCountriesRef.current.clear();
+      countries.forEach(c => loadedCountriesRef.current.add(c));
+
+      setApiStatus("success");
+    } catch (error) {
+      console.error('[v4.2.0] Keyword search error:', error);
+      setApiStatus("error");
+      if (error.message !== 'QUOTA_EXCEEDED') {
+        alert(`검색 중 오류가 발생했습니다: ${error.message}`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCountries]);
+
+  // [v4.2.0] 트렌딩 모드로 복귀
+  const resetToTrending = useCallback(() => {
+    setSearchMode('trending');
+    setCurrentKeyword('');
+    setData([]);
+    dataRef.current = [];
+    loadedCountriesRef.current.clear();
+    hasLoadedRef.current = false;
+  }, []);
+
   // [v3.6.1] totalViews를 useMemo로 메모이제이션하여 data 변경 시 자동 갱신
   const totalViews = useMemo(() => {
     const sum = data.reduce((acc, v) => acc + (v.viewCount || 0), 0);
@@ -650,7 +809,22 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     totalViews: totalViews
   }), [aiKeywords, totalViews]);
 
-  return { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, apiStatus, countries: COUNTRIES, englishSpeakingCountries: ENGLISH_SPEAKING_COUNTRIES };
+  return {
+    data,
+    analysis,
+    aiStrategy,
+    isLoading,
+    isAiLoading,
+    runAiAnalysis,
+    apiStatus,
+    countries: COUNTRIES,
+    englishSpeakingCountries: ENGLISH_SPEAKING_COUNTRIES,
+    // [v4.2.0] 키워드 검색 관련
+    searchByKeyword,
+    resetToTrending,
+    searchMode,
+    currentKeyword
+  };
 };
 
 function parseDuration(duration) {

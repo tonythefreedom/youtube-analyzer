@@ -3,7 +3,7 @@ import { useTrendData } from './useTrendData';
 import TrendChart from './components/TrendChart';
 import VideoList from './components/VideoList';
 import Login from './components/Login';
-import { Layers, Globe, Zap, BarChart3, Filter, Calendar, Play, ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
+import { Layers, Globe, Zap, BarChart3, Filter, Calendar, Play, ExternalLink, Copy, Check, Loader2, Search } from 'lucide-react';
 import { hashString } from './utils/auth';
 import authConfig from './authConfig.json';
 
@@ -58,14 +58,31 @@ const App = () => {
   const isResizing = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
 
+  // [v4.2.0] 키워드 검색 상태
+  const [searchKeyword, setSearchKeyword] = useState('');
+
   // [v3.4.2] 로그인 후에만 API 호출
   // [v3.5.0] 선택된 모든 국가의 데이터 수집
   // [v3.8.0] contentType 파라미터 추가 (long 또는 shorts)
-  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus } = useTrendData(
-    isLoggedIn ? selectedCountries : [], 
+  // [v4.2.0] 키워드 검색 기능 추가
+  const { data, analysis, aiStrategy, isLoading, isAiLoading, runAiAnalysis, countries, apiStatus, searchByKeyword, resetToTrending, searchMode, currentKeyword } = useTrendData(
+    isLoggedIn ? selectedCountries : [],
     isLoggedIn,
     filterType // contentType 전달
   );
+
+  // [v4.2.0] 키워드 검색 핸들러
+  const handleKeywordSearch = () => {
+    if (searchKeyword.trim()) {
+      searchByKeyword(searchKeyword.trim(), selectedCountries);
+    }
+  };
+
+  // [v4.2.0] 트렌딩으로 복귀 핸들러
+  const handleResetToTrending = () => {
+    setSearchKeyword('');
+    resetToTrending();
+  };
 
   const handleCopy = (story, index) => {
     const slideText = story.slide_scenario?.map(s => `${s.slide}\n  내용: ${s.content}\n  리서치: ${s.research}`).join('\n\n') || 'N/A';
@@ -274,7 +291,7 @@ const App = () => {
               onClick={toggleAllCountries}
               className={`px-3 py-1.5 rounded-full text-[9px] font-black transition-all ${
                 Object.keys(countries).every(code => selectedCountries.includes(code))
-                  ? 'bg-secondary text-white' 
+                  ? 'bg-secondary text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
               title="전체 선택/해제"
@@ -282,12 +299,12 @@ const App = () => {
               {Object.keys(countries).every(code => selectedCountries.includes(code)) ? 'ALL' : 'SELECT ALL'}
             </button>
             {Object.entries(countries).map(([code, { flag }]) => (
-              <button 
-                key={code} 
-                onClick={() => toggleCountry(code)} 
+              <button
+                key={code}
+                onClick={() => toggleCountry(code)}
                 className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${
-                  selectedCountries.includes(code) 
-                    ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]' 
+                  selectedCountries.includes(code)
+                    ? 'bg-primary text-black shadow-[0_0_15px_rgba(0,242,255,0.5)]'
                     : 'text-gray-500 hover:text-gray-300'
                 }`}
                 title={selectedCountries.includes(code) ? '선택됨 (클릭하여 해제)' : '클릭하여 선택'}
@@ -296,6 +313,41 @@ const App = () => {
               </button>
             ))}
           </div>
+
+          {/* [v4.2.0] 키워드 검색 */}
+          <div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full border border-gray-800">
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleKeywordSearch()}
+              placeholder="키워드 검색..."
+              className="bg-transparent text-[11px] font-bold outline-none text-gray-300 w-32 placeholder-gray-600"
+            />
+            <button
+              onClick={handleKeywordSearch}
+              disabled={isLoading || !searchKeyword.trim()}
+              className="px-3 py-1 rounded-full text-[9px] font-black bg-green-500 text-white hover:bg-green-400 disabled:bg-gray-600 disabled:text-gray-400 transition-all"
+            >
+              검색
+            </button>
+            {searchMode === 'keyword' && (
+              <button
+                onClick={handleResetToTrending}
+                className="px-3 py-1 rounded-full text-[9px] font-black bg-orange-500 text-white hover:bg-orange-400 transition-all"
+                title="트렌딩으로 복귀"
+              >
+                초기화
+              </button>
+            )}
+          </div>
+
+          {/* [v4.2.0] 현재 모드 표시 */}
+          {searchMode === 'keyword' && currentKeyword && (
+            <div className="bg-green-500/20 border border-green-500/50 text-green-400 text-[9px] font-black px-3 py-1.5 rounded-full">
+              🔍 "{currentKeyword}" 검색 결과
+            </div>
+          )}
           {apiStatus === "blocked" && (
             <div className="flex flex-col items-end">
               <div className="bg-orange-500/10 border border-orange-500/50 text-orange-500 text-[9px] font-black px-3 py-1.5 rounded-full animate-pulse">
