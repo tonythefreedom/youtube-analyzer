@@ -669,11 +669,17 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     try {
       console.log(`[v4.2.0] Keyword search: "${keyword}" for countries: ${countries.join(', ')}`);
 
+      // [v4.2.3] 검색 기간: 일주일 전부터 현재까지
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const publishedAfter = oneWeekAgo.toISOString();
+      console.log(`[v4.2.3] Search date range: ${publishedAfter} ~ now`);
+
       // 각 국가별로 검색 수행
       const results = await Promise.allSettled(
         countries.map(async (country) => {
-          // Step 1: Search API로 비디오 ID 가져오기 (국가별 최대 50개)
-          const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(keyword)}&order=viewCount&regionCode=${country}&maxResults=50&key=${YOUTUBE_API_KEY}`;
+          // Step 1: Search API로 비디오 ID 가져오기 (국가별 최대 50개, 최근 일주일)
+          const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(keyword)}&order=viewCount&regionCode=${country}&maxResults=50&publishedAfter=${encodeURIComponent(publishedAfter)}&key=${YOUTUBE_API_KEY}`;
 
           console.log(`[v4.2.0] Searching "${keyword}" in ${country}...`);
           const searchResponse = await fetch(searchUrl);

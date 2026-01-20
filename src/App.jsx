@@ -60,6 +60,8 @@ const App = () => {
 
   // [v4.2.0] 키워드 검색 상태
   const [searchKeyword, setSearchKeyword] = useState('');
+  // [v4.3.0] 트렌드 맵에서 선택된 키워드들
+  const [selectedMapKeywords, setSelectedMapKeywords] = useState([]);
 
   // [v3.4.2] 로그인 후에만 API 호출
   // [v3.5.0] 선택된 모든 국가의 데이터 수집
@@ -71,17 +73,46 @@ const App = () => {
     filterType // contentType 전달
   );
 
-  // [v4.2.0] 키워드 검색 핸들러
+  // [v4.2.0] 키워드 검색 핸들러 - [v4.2.2] 빈 키워드 시 트렌드 데이터 검색
   const handleKeywordSearch = () => {
     if (searchKeyword.trim()) {
       searchByKeyword(searchKeyword.trim(), selectedCountries);
+    } else {
+      // 키워드가 비어있으면 트렌드 데이터로 복귀
+      resetToTrending();
     }
   };
 
   // [v4.2.0] 트렌딩으로 복귀 핸들러
   const handleResetToTrending = () => {
     setSearchKeyword('');
+    setSelectedMapKeywords([]); // [v4.3.0] 맵 키워드 선택도 초기화
     resetToTrending();
+  };
+
+  // [v4.3.0] 트렌드 맵 키워드 토글 핸들러
+  const handleMapKeywordToggle = (keyword) => {
+    console.log('[v4.3.0] Keyword toggled:', keyword);
+    setSelectedMapKeywords(prev => {
+      const newKeywords = prev.includes(keyword)
+        ? prev.filter(k => k !== keyword)
+        : [...prev, keyword];
+      console.log('[v4.3.0] Selected keywords:', newKeywords);
+      return newKeywords;
+    });
+  };
+
+  // [v4.3.0] 선택된 맵 키워드로 검색
+  const handleSearchSelectedKeywords = () => {
+    if (selectedMapKeywords.length === 0) return;
+    const combinedKeyword = selectedMapKeywords.join(' ');
+    setSearchKeyword(combinedKeyword);
+    searchByKeyword(combinedKeyword, selectedCountries);
+  };
+
+  // [v4.3.0] 맵 키워드 선택 초기화
+  const handleClearSelectedKeywords = () => {
+    setSelectedMapKeywords([]);
   };
 
   const handleCopy = (story, index) => {
@@ -527,7 +558,14 @@ const App = () => {
                 )}
                 {/* 트리맵 차트 영역 */}
                 <div className="mt-4 bg-black/20 rounded-2xl border border-gray-800/50 p-4">
-                  <TrendChart data={analysis.keywords} onCategoryClick={setActiveCategory} />
+                  <TrendChart
+                    data={analysis.keywords}
+                    onCategoryClick={setActiveCategory}
+                    selectedKeywords={selectedMapKeywords}
+                    onKeywordToggle={handleMapKeywordToggle}
+                    onSearchSelectedKeywords={handleSearchSelectedKeywords}
+                    onClearSelectedKeywords={handleClearSelectedKeywords}
+                  />
                 </div>
               </div>
             </div>
