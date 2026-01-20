@@ -7,7 +7,7 @@ const VideoItemSimple = ({ video }) => {
     e.stopPropagation();
     const url = `https://www.youtube.com/watch?v=${video.id}`;
     // [v1.8.0] 절대 경로 일치 검증
-    console.log(`[v1.8.0 ACTION] Opening ID: ${video.id} | Title: ${video.title}`);
+    // console.log(`[v1.8.0 ACTION] Opening ID: ${video.id} | Title: ${video.title}`);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -92,7 +92,7 @@ const VideoList = ({ videos }) => {
     
     // [v2.8.0 CRITICAL SYNC]
     if (videos.length > 0) {
-      console.log(`[v2.8.0] DATA SYNC CHECK: ID=${videos[0].id} | Title=${videos[0].title}`);
+      // console.log(`[v2.8.0] DATA SYNC CHECK: ID=${videos[0].id} | Title=${videos[0].title}`);
     }
   }, [videos]);
 

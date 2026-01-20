@@ -21,7 +21,7 @@ const CustomizedContent = (props) => {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    console.log('[TrendChart] Keyword clicked:', name);
+    // console.log('[TrendChart] Keyword clicked:', name);
     if (onKeywordToggle) {
       onKeywordToggle(name);
     }
@@ -67,10 +67,10 @@ const CustomizedContent = (props) => {
 const TrendChart = ({ data, onCategoryClick, selectedKeywords = [], onKeywordToggle, onSearchSelectedKeywords, onClearSelectedKeywords }) => {
   // [v3.5.9] 제목은 항상 표시되도록 수정
   // [v3.6.0] 디버깅 로그 추가
-  console.log('[TrendChart] Received data:', data);
-  console.log('[TrendChart] Data type:', typeof data);
-  console.log('[TrendChart] Is array:', Array.isArray(data));
-  console.log('[TrendChart] Data length:', data?.length);
+  // console.log('[TrendChart] Received data:', data);
+  // console.log('[TrendChart] Data type:', typeof data);
+  // console.log('[TrendChart] Is array:', Array.isArray(data));
+  // console.log('[TrendChart] Data length:', data?.length);
 
   const hasData = data && Array.isArray(data) && data.length > 0;
 
@@ -80,7 +80,7 @@ const TrendChart = ({ data, onCategoryClick, selectedKeywords = [], onKeywordTog
         .filter(item => {
           const isValid = item && item.name && (item.value !== undefined && item.value !== null);
           if (!isValid) {
-            console.warn('[TrendChart] Invalid item:', item);
+            // console.warn('[TrendChart] Invalid item:', item);
           }
           return isValid;
         })
@@ -90,8 +90,8 @@ const TrendChart = ({ data, onCategoryClick, selectedKeywords = [], onKeywordTog
         }))
     : [];
 
-  console.log('[TrendChart] Safe data length:', safeData.length);
-  console.log('[TrendChart] Has data:', hasData);
+  // console.log('[TrendChart] Safe data length:', safeData.length);
+  // console.log('[TrendChart] Has data:', hasData);
 
   return (
     <div className="w-full h-[600px] bg-surface/50 rounded-2xl p-6 border border-gray-800 shadow-inner">
@@ -148,7 +148,7 @@ const TrendChart = ({ data, onCategoryClick, selectedKeywords = [], onKeywordTog
               content={<CustomizedContent onKeywordToggle={onKeywordToggle} selectedKeywords={selectedKeywords} />}
               animationDuration={300}
               onClick={(node) => {
-                console.log('[TrendChart] Treemap onClick:', node);
+                // console.log('[TrendChart] Treemap onClick:', node);
                 if (node && node.name && onKeywordToggle) {
                   onKeywordToggle(node.name);
                 }

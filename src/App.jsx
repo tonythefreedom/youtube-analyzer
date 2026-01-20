@@ -25,7 +25,7 @@ const App = () => {
       if (sessionAge > thirtyMinutes) {
         // 세션 만료
         localStorage.removeItem('yt-trend-scope-session');
-        console.log('[v3.4.7] Session expired after 30 minutes');
+        // console.log('[v3.4.7] Session expired after 30 minutes');
         return false;
       }
       
@@ -92,12 +92,12 @@ const App = () => {
 
   // [v4.3.0] 트렌드 맵 키워드 토글 핸들러
   const handleMapKeywordToggle = (keyword) => {
-    console.log('[v4.3.0] Keyword toggled:', keyword);
+    // console.log('[v4.3.0] Keyword toggled:', keyword);
     setSelectedMapKeywords(prev => {
       const newKeywords = prev.includes(keyword)
         ? prev.filter(k => k !== keyword)
         : [...prev, keyword];
-      console.log('[v4.3.0] Selected keywords:', newKeywords);
+      // console.log('[v4.3.0] Selected keywords:', newKeywords);
       return newKeywords;
     });
   };
@@ -126,7 +126,7 @@ const App = () => {
   const filteredVideos = useMemo(() => {
     // 1단계: 조회수 기준으로 전체 데이터 정렬
     const sortedData = [...data].sort((a, b) => b.viewCount - a.viewCount);
-    console.log(`[v3.5.5] Total data: ${data.length}, After sort: ${sortedData.length}`);
+    // console.log(`[v3.5.5] Total data: ${data.length}, After sort: ${sortedData.length}`);
     
     // 2단계: 구간 필터 적용 (필터링 전에 구간 선택)
     // [v3.4.4] YouTube API는 최대 200개만 반환하므로 구간을 200개 기준으로 조정
@@ -150,7 +150,7 @@ const App = () => {
       default:
         rangeFiltered = sortedData;
     }
-    console.log(`[v3.5.5] After rank range filter (${rankRange}): ${rangeFiltered.length}`);
+    // console.log(`[v3.5.5] After rank range filter (${rankRange}): ${rangeFiltered.length}`);
     
     // 3단계: 선택된 구간 내에서 날짜 필터 적용 (타입 필터 제거 - 이미 데이터가 해당 타입만 포함)
     const beforeFilter = rangeFiltered.length;
@@ -166,12 +166,12 @@ const App = () => {
       const videoDate = v.publishedAt.split('T')[0];
       return videoDate >= dateRange.start && videoDate <= dateRange.end;
     });
-    console.log(`[v3.8.0] ===== Filtering Summary =====`);
-    console.log(`[v3.8.0] Content type: ${filterType}`);
-    console.log(`[v3.8.0] After rank filter: ${beforeFilter}`);
-    console.log(`[v3.8.0] After date filter (${dateRange.start} ~ ${dateRange.end}): ${dateFiltered.length}`);
-    console.log(`[v3.8.0] Final filtered videos: ${filtered.length}`);
-    console.log(`[v3.8.0] =============================`);
+    // console.log(`[v3.8.0] ===== Filtering Summary =====`);
+    // console.log(`[v3.8.0] Content type: ${filterType}`);
+    // console.log(`[v3.8.0] After rank filter: ${beforeFilter}`);
+    // console.log(`[v3.8.0] After date filter (${dateRange.start} ~ ${dateRange.end}): ${dateFiltered.length}`);
+    // console.log(`[v3.8.0] Final filtered videos: ${filtered.length}`);
+    // console.log(`[v3.8.0] =============================`);
     
     return filtered;
   }, [data, filterType, dateRange, rankRange]); // [v3.5.6] activeCategory 의존성 제거
@@ -272,7 +272,7 @@ const App = () => {
         if (sessionAge > thirtyMinutes) {
           localStorage.removeItem('yt-trend-scope-session');
           setIsLoggedIn(false);
-          console.log('[v3.4.7] Session expired after 30 minutes');
+          // console.log('[v3.4.7] Session expired after 30 minutes');
         }
       } catch (e) {
         // 세션 데이터 형식 오류
@@ -299,7 +299,7 @@ const App = () => {
     };
     localStorage.setItem('yt-trend-scope-session', JSON.stringify(sessionData));
     setIsLoggedIn(true);
-    console.log('[v3.4.7] Session created, will expire in 30 minutes');
+    // console.log('[v3.4.7] Session created, will expire in 30 minutes');
   };
 
   if (!isLoggedIn) {

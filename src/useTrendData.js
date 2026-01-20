@@ -50,7 +50,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     // [v3.5.4] data를 의존성에 추가하여 기존 데이터에 접근 가능하도록 함
     // [v3.5.9] 할당량 초과 시 재시도 방지 및 실제 데이터만 사용
     if (quotaExceededRef.current) {
-      console.warn("[v3.5.9] Quota exceeded. No data will be loaded.");
+      // console.warn("[v3.5.9] Quota exceeded. No data will be loaded.");
       setApiStatus("blocked");
       setData([]);
       alert("YouTube API 할당량이 초과되었습니다. API 키의 할당량을 확인해 주세요.");
@@ -60,7 +60,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     
     // [v3.5.9] API 키가 없으면 데이터를 로드하지 않음
     if (!YOUTUBE_API_KEY) {
-      console.warn("[v3.5.9] YouTube API Key missing. No data will be loaded.");
+      // console.warn("[v3.5.9] YouTube API Key missing. No data will be loaded.");
       setApiStatus("blocked");
       setData([]);
       alert("YouTube API 키가 설정되지 않았습니다. GitHub Secrets를 확인해 주세요.");
@@ -74,7 +74,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     try {
       // [v3.8.1] contentType 변경 시 강제 리로드: 기존 데이터를 모두 제거하고 다시 가져오기
       if (forceReload) {
-        console.log(`[v3.8.1] Force reload: clearing all existing data and reloading for ${currentContentType}`);
+        // console.log(`[v3.8.1] Force reload: clearing all existing data and reloading for ${currentContentType}`);
         setData([]); // 상태도 초기화
         dataRef.current = [];
         loadedCountriesRef.current.clear();
@@ -102,7 +102,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       
       // [v3.7.1] 해제된 국가가 있으면 loadedCountriesRef에서 제거
       if (deselectedCountries.length > 0) {
-        console.log(`[v3.7.1] Countries deselected: ${deselectedCountries.join(', ')}`);
+        // console.log(`[v3.7.1] Countries deselected: ${deselectedCountries.join(', ')}`);
         deselectedCountries.forEach(country => {
           loadedCountriesRef.current.delete(country);
         });
@@ -110,7 +110,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       
       // [v3.7.1] 새 국가가 없고 해제된 국가도 없으면 리턴
       if (countriesToFetch.length === 0 && deselectedCountries.length === 0) {
-        console.log(`[v3.5.4] All selected countries already loaded. No new API calls needed.`);
+        // console.log(`[v3.5.4] All selected countries already loaded. No new API calls needed.`);
         setIsLoading(false);
         return;
       }
@@ -118,12 +118,12 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       // [v3.7.1] 해제된 국가만 있고 새 국가가 없으면 데이터 제거만 수행
       let results = [];
       if (countriesToFetch.length === 0 && deselectedCountries.length > 0) {
-        console.log(`[v3.7.1] No new countries to fetch, but removing data for deselected countries`);
+        // console.log(`[v3.7.1] No new countries to fetch, but removing data for deselected countries`);
         // API 호출 없이 빈 결과로 처리
         results = [];
       } else if (countriesToFetch.length > 0) {
-        console.log(`[v3.5.4] Starting data collection for ${countriesToFetch.length} new countries: ${countriesToFetch.join(', ')}`);
-        console.log(`[v3.5.4] Already loaded countries: ${Array.from(loadedCountriesRef.current).join(', ') || 'none'}`);
+        // console.log(`[v3.5.4] Starting data collection for ${countriesToFetch.length} new countries: ${countriesToFetch.join(', ')}`);
+        // console.log(`[v3.5.4] Already loaded countries: ${Array.from(loadedCountriesRef.current).join(', ') || 'none'}`);
         
         results = await Promise.allSettled(
           countriesToFetch.map(async (country) => {
@@ -151,7 +151,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
                 return duration > 60;
               });
 
-              console.log(`[v4.0.0] ${country} (long-form): mostPopular API returned ${allItems.length} items, after filter: ${filteredItems.length}`);
+              // console.log(`[v4.0.0] ${country} (long-form): mostPopular API returned ${allItems.length} items, after filter: ${filteredItems.length}`);
 
               return { country, items: filteredItems };
 
@@ -161,7 +161,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
 
               const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${country}&maxResults=200&key=${YOUTUBE_API_KEY}`;
 
-              console.log(`[v4.1.0] ${country} (shorts): Calling mostPopular API`);
+              // console.log(`[v4.1.0] ${country} (shorts): Calling mostPopular API`);
 
               const response = await fetch(url);
               const resData = await response.json();
@@ -179,26 +179,26 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               const allItems = resData.items || [];
 
               // Duration ≤ 60초만 유지 (Shorts 필터링)
-              let debugCount = 0;
+              // let debugCount = 0;
               const filteredItems = allItems.filter(item => {
                 const duration = item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : 0;
                 const isShorts = duration > 0 && duration <= 60;
 
                 // 디버깅: 처음 10개 항목의 duration 로깅 (모든 항목)
-                if (debugCount < 10) {
-                  console.log(`[v4.1.1] ${country} video sample #${debugCount + 1}:`, {
-                    title: item.snippet.title.substring(0, 50),
-                    duration: duration,
-                    isShorts: isShorts,
-                    rawDuration: item.contentDetails?.duration
-                  });
-                  debugCount++;
-                }
+                // if (debugCount < 10) {
+                //   console.log(`[v4.1.1] ${country} video sample #${debugCount + 1}:`, {
+                //     title: item.snippet.title.substring(0, 50),
+                //     duration: duration,
+                //     isShorts: isShorts,
+                //     rawDuration: item.contentDetails?.duration
+                //   });
+                //   debugCount++;
+                // }
 
                 return isShorts;
               });
 
-              console.log(`[v4.1.1] ${country} (shorts): mostPopular returned ${allItems.length} items, after shorts filter (≤60s): ${filteredItems.length}`);
+              // console.log(`[v4.1.1] ${country} (shorts): mostPopular returned ${allItems.length} items, after shorts filter (≤60s): ${filteredItems.length}`);
 
               return { country, items: filteredItems };
             }
@@ -265,7 +265,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
             duplicateCount++;
             // 중복 발견 시 로그 (너무 많으면 로그 제한)
             if (duplicateCount <= 10) {
-              console.log(`[v3.5.4] Duplicate video ID found: ${item.id} (already exists)`);
+              // console.log(`[v3.5.4] Duplicate video ID found: ${item.id} (already exists)`);
             }
           }
         });
@@ -284,31 +284,31 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       const finalData = Array.from(allItemsMap.values()).sort((a, b) => b.viewCount - a.viewCount);
       
       // [v3.5.4] 상세 통계 로그
-      console.log(`[v3.5.4] ===== Data Collection Summary =====`);
-      console.log(`[v3.5.4] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
+      // console.log(`[v3.5.4] ===== Data Collection Summary =====`);
+      // console.log(`[v3.5.4] Selected countries: ${selectedCountries.length} (${selectedCountries.join(', ')})`);
       if (deselectedCountries.length > 0) {
-        console.log(`[v3.7.1] Deselected countries: ${deselectedCountries.length} (${deselectedCountries.join(', ')})`);
+        // console.log(`[v3.7.1] Deselected countries: ${deselectedCountries.length} (${deselectedCountries.join(', ')})`);
       }
-      console.log(`[v3.5.4] New countries fetched: ${countriesToFetch.length} (${countriesToFetch.join(', ') || 'none'})`);
-      console.log(`[v3.5.4] Successful countries: ${successfulResults.length}`);
+      // console.log(`[v3.5.4] New countries fetched: ${countriesToFetch.length} (${countriesToFetch.join(', ') || 'none'})`);
+      // console.log(`[v3.5.4] Successful countries: ${successfulResults.length}`);
       if (failedCountries.length > 0) {
-        console.log(`[v3.5.4] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
+        // console.log(`[v3.5.4] Failed countries: ${failedCountries.length} (${failedCountries.join(', ')})`);
       }
-      console.log(`[v3.5.4] Country breakdown:`, countryStats);
-      console.log(`[v3.5.4] Existing videos: ${existingDataMap.size}`);
-      console.log(`[v3.5.4] New videos added: ${newItemsCount}`);
-      console.log(`[v3.5.4] Total before deduplication: ${totalBeforeDedup}`);
-      console.log(`[v3.5.4] Duplicates removed: ${duplicateCount}`);
+      // console.log(`[v3.5.4] Country breakdown:`, countryStats);
+      // console.log(`[v3.5.4] Existing videos: ${existingDataMap.size}`);
+      // console.log(`[v3.5.4] New videos added: ${newItemsCount}`);
+      // console.log(`[v3.5.4] Total before deduplication: ${totalBeforeDedup}`);
+      // console.log(`[v3.5.4] Duplicates removed: ${duplicateCount}`);
       const removedCount = existingDataMap.size - finalData.length;
       if (removedCount > 0) {
-        console.log(`[v3.7.1] Videos removed (deselected countries): ${removedCount}`);
+        // console.log(`[v3.7.1] Videos removed (deselected countries): ${removedCount}`);
       }
-      console.log(`[v3.5.4] Final unique videos: ${finalData.length}`);
-      console.log(`[v3.5.4] ====================================`);
+      // console.log(`[v3.5.4] Final unique videos: ${finalData.length}`);
+      // console.log(`[v3.5.4] ====================================`);
       
       if (finalData.length < 50) {
-        console.warn(`[v3.5.3] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
-        console.warn(`[v3.5.3] Possible reasons: API limitations, high duplicate rate, or failed API calls.`);
+        // console.warn(`[v3.5.3] WARNING: Only ${finalData.length} videos collected. This may be insufficient for rank range filtering.`);
+        // console.warn(`[v3.5.3] Possible reasons: API limitations, high duplicate rate, or failed API calls.`);
       }
       setData(finalData);
       setApiStatus("success");
@@ -320,10 +320,10 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       
       if (isQuotaExceeded) {
         quotaExceededRef.current = true;
-        console.warn("[v3.5.9] YouTube API Quota Exceeded. No simulation data will be used.");
+        // console.warn("[v3.5.9] YouTube API Quota Exceeded. No simulation data will be used.");
         handleApiFailure("YouTube API 할당량이 초과되었습니다.");
       } else {
-        console.warn("[v3.5.9] API Error Detected. No simulation data will be used.", error.message);
+        // console.warn("[v3.5.9] API Error Detected. No simulation data will be used.", error.message);
         handleApiFailure(error.message || "알 수 없는 오류가 발생했습니다.");
       }
     } finally {
@@ -353,7 +353,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       // [v3.8.0] contentType이 변경되면 로드된 국가 초기화 및 강제 리로드 (다른 타입 데이터를 가져와야 함)
       const contentTypeChanged = previousContentTypeRef.current !== contentType;
       if (contentTypeChanged) {
-        console.log(`[v3.8.1] Content type changed from ${previousContentTypeRef.current} to ${contentType}, forcing reload`);
+        // console.log(`[v3.8.1] Content type changed from ${previousContentTypeRef.current} to ${contentType}, forcing reload`);
         loadedCountriesRef.current.clear();
         previousContentTypeRef.current = contentType;
         fetchTrends(contentType, true); // 강제 리로드
@@ -381,8 +381,8 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     }
 
     setIsAiLoading(true);
-    console.log('[AI Analysis] Starting analysis...');
-    console.log('[AI Analysis] Videos to analyze:', filteredVideos.length);
+    // console.log('[AI Analysis] Starting analysis...');
+    // console.log('[AI Analysis] Videos to analyze:', filteredVideos.length);
     const analysisStartTime = Date.now();
 
     try {
@@ -526,43 +526,43 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       - ALL Korean except keywords/angle
       - Specific to trend data`;
       
-      console.log('[AI Analysis] Sending request to Gemini API...');
-      console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');
+      // console.log('[AI Analysis] Sending request to Gemini API...');
+      // console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');
 
       const result = await aiModel.generateContent(prompt);
-      console.log('[AI Analysis] Received response from Gemini API');
-      console.log('[AI Analysis] Response time:', Date.now() - analysisStartTime, 'ms');
+      // console.log('[AI Analysis] Received response from Gemini API');
+      // console.log('[AI Analysis] Response time:', Date.now() - analysisStartTime, 'ms');
 
       const rawText = result.response.text().replace(/```json|```/g, '').trim();
-      console.log('[AI Analysis] Raw text length:', rawText.length, 'characters');
-      console.log('[AI Analysis] Raw text preview:', rawText.substring(0, 200));
+      // console.log('[AI Analysis] Raw text length:', rawText.length, 'characters');
+      // console.log('[AI Analysis] Raw text preview:', rawText.substring(0, 200));
 
       const res = JSON.parse(rawText);
-      console.log('[AI Analysis] JSON parsed successfully');
+      // console.log('[AI Analysis] JSON parsed successfully');
       
       // [v3.6.0] 키워드 데이터 검증 및 로깅
-      console.log('[AI Analysis] Raw response:', res);
-      console.log('[AI Analysis] Keywords received:', res.keywords);
-      console.log('[AI Analysis] Keywords type:', typeof res.keywords);
-      console.log('[AI Analysis] Is array:', Array.isArray(res.keywords));
+      // console.log('[AI Analysis] Raw response:', res);
+      // console.log('[AI Analysis] Keywords received:', res.keywords);
+      // console.log('[AI Analysis] Keywords type:', typeof res.keywords);
+      // console.log('[AI Analysis] Is array:', Array.isArray(res.keywords));
       
       let keywords = res.keywords || [];
       
       // [v3.6.3] 키워드 데이터 형식 검증 및 변환
       if (keywords.length > 0) {
-        console.log('[AI Analysis] First keyword sample:', keywords[0]);
-        console.log('[AI Analysis] Keywords count:', keywords.length);
+        // console.log('[AI Analysis] First keyword sample:', keywords[0]);
+        // console.log('[AI Analysis] Keywords count:', keywords.length);
         
         // 키워드가 문자열 배열인 경우 {name, value} 형식으로 변환
         if (typeof keywords[0] === 'string') {
-          console.warn('[AI Analysis] Keywords are strings, converting to {name, value} format');
+          // console.warn('[AI Analysis] Keywords are strings, converting to {name, value} format');
           keywords = keywords.map((keyword, index) => ({
             name: keyword,
             value: Math.max(10, 100 - Math.floor(index * 1.5)) // 인덱스에 따라 값 할당 (100부터 감소)
           }));
         } else if (keywords.length > 0 && (!keywords[0].name || keywords[0].value === undefined)) {
           // 키워드가 객체이지만 name이나 value가 없는 경우
-          console.warn('[AI Analysis] Keywords missing name or value, attempting to fix');
+          // console.warn('[AI Analysis] Keywords missing name or value, attempting to fix');
           keywords = keywords.map((keyword, index) => {
             if (typeof keyword === 'string') {
               return {
@@ -588,15 +588,15 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         keywords = keywords.filter(k => {
           const isValid = k && typeof k === 'object' && k.name && (k.value !== undefined && k.value !== null);
           if (!isValid) {
-            console.warn('[AI Analysis] Filtered out invalid keyword:', k);
+            // console.warn('[AI Analysis] Filtered out invalid keyword:', k);
           }
           return isValid;
         });
         
-        console.log('[AI Analysis] Processed keywords:', keywords);
-        console.log('[AI Analysis] Final keywords count:', keywords.length);
+        // console.log('[AI Analysis] Processed keywords:', keywords);
+        // console.log('[AI Analysis] Final keywords count:', keywords.length);
       } else {
-        console.warn('[AI Analysis] No keywords received from AI response');
+        // console.warn('[AI Analysis] No keywords received from AI response');
       }
       
       setAiKeywords(keywords);
@@ -667,13 +667,13 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
     setCurrentKeyword(keyword.trim());
 
     try {
-      console.log(`[v4.2.0] Keyword search: "${keyword}" for countries: ${countries.join(', ')}`);
+      // console.log(`[v4.2.0] Keyword search: "${keyword}" for countries: ${countries.join(', ')}`);
 
       // [v4.2.3] 검색 기간: 일주일 전부터 현재까지
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       const publishedAfter = oneWeekAgo.toISOString();
-      console.log(`[v4.2.3] Search date range: ${publishedAfter} ~ now`);
+      // console.log(`[v4.2.3] Search date range: ${publishedAfter} ~ now`);
 
       // 각 국가별로 검색 수행
       const results = await Promise.allSettled(
@@ -681,7 +681,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           // Step 1: Search API로 비디오 ID 가져오기 (국가별 최대 50개, 최근 일주일)
           const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(keyword)}&order=viewCount&regionCode=${country}&maxResults=50&publishedAfter=${encodeURIComponent(publishedAfter)}&key=${YOUTUBE_API_KEY}`;
 
-          console.log(`[v4.2.0] Searching "${keyword}" in ${country}...`);
+          // console.log(`[v4.2.0] Searching "${keyword}" in ${country}...`);
           const searchResponse = await fetch(searchUrl);
           const searchData = await searchResponse.json();
 
@@ -695,7 +695,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           }
 
           const searchItems = searchData.items || [];
-          console.log(`[v4.2.0] ${country}: Search returned ${searchItems.length} results`);
+          // console.log(`[v4.2.0] ${country}: Search returned ${searchItems.length} results`);
 
           if (searchItems.length === 0) {
             return { country, items: [] };
@@ -738,7 +738,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
             searchKeyword: keyword.trim()
           }));
 
-          console.log(`[v4.2.0] ${country}: Got ${processedVideos.length} videos`);
+          // console.log(`[v4.2.0] ${country}: Got ${processedVideos.length} videos`);
           return { country, items: processedVideos };
         })
       );
@@ -763,8 +763,8 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
         return true;
       });
 
-      console.log(`[v4.2.0] Keyword search complete: ${uniqueVideos.length} unique videos for "${keyword}"`);
-      console.log(`[v4.2.0] Country breakdown:`, countryBreakdown);
+      // console.log(`[v4.2.0] Keyword search complete: ${uniqueVideos.length} unique videos for "${keyword}"`);
+      // console.log(`[v4.2.0] Country breakdown:`, countryBreakdown);
 
       if (uniqueVideos.length === 0) {
         alert(`"${keyword}"에 대한 검색 결과가 없습니다.`);
@@ -807,7 +807,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
   // [v3.6.1] totalViews를 useMemo로 메모이제이션하여 data 변경 시 자동 갱신
   const totalViews = useMemo(() => {
     const sum = data.reduce((acc, v) => acc + (v.viewCount || 0), 0);
-    console.log('[useTrendData] Total views calculated:', sum, 'from', data.length, 'videos');
+    // console.log('[useTrendData] Total views calculated:', sum, 'from', data.length, 'videos');
     return sum;
   }, [data]);
 
