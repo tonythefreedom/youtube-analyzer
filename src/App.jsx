@@ -3,12 +3,14 @@ import { useTrendData } from './useTrendData';
 import TrendChart from './components/TrendChart';
 import VideoList from './components/VideoList';
 import Login from './components/Login';
-import { Layers, Globe, Zap, BarChart3, Filter, Calendar, Play, ExternalLink, Copy, Check, Loader2, Search } from 'lucide-react';
+import { Layers, Globe, Zap, BarChart3, Filter, Calendar, Play, ExternalLink, Copy, Check, Loader2, Search, Bookmark, BookmarkCheck } from 'lucide-react';
+import { useSavedAngles } from './hooks/useSavedAngles';
+import SavedAnglesPanel from './components/SavedAnglesPanel';
 import { hashString } from './utils/auth';
 import authConfig from './authConfig.json';
 
 const App = () => {
-  const version = "v3.4.0";
+  const version = "v4.4.0";
   // [v3.4.6] 로그인 세션을 localStorage에 저장하여 새로고침 후에도 유지
   // [v3.4.7] 세션 만료 시간 30분 추가
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -57,6 +59,11 @@ const App = () => {
   const [leftWidth, setLeftWidth] = useState(window.innerWidth * 0.65);
   const isResizing = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
+
+  // [v4.4.0] Saved Angles 기능
+  const [savedAnglesPanelOpen, setSavedAnglesPanelOpen] = useState(false);
+  const [savedId, setSavedId] = useState(null);
+  const { savedAngles, saveAngle, deleteAngle, clearAllAngles, isAngleSaved, savedCount } = useSavedAngles();
 
   // [v4.2.0] 키워드 검색 상태
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -121,6 +128,16 @@ const App = () => {
     navigator.clipboard.writeText(text);
     setCopiedId(index);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // [v4.4.0] Angle 저장 핸들러
+  const handleSaveAngle = (story, index) => {
+    if (isAngleSaved(story)) {
+      return; // 이미 저장된 경우
+    }
+    saveAngle(story);
+    setSavedId(index);
+    setTimeout(() => setSavedId(null), 2000);
   };
 
   const filteredVideos = useMemo(() => {
@@ -391,6 +408,20 @@ const App = () => {
             )}
           </div>
 
+          {/* [v4.4.0] Saved Angles 버튼 */}
+          <button
+            onClick={() => setSavedAnglesPanelOpen(true)}
+            className="flex items-center gap-2 bg-surface px-4 py-2 rounded-full border border-gray-800 hover:border-primary/50 transition-colors"
+          >
+            <Bookmark size={14} className="text-primary" />
+            <span className="text-[10px] font-black text-gray-300">SAVED</span>
+            {savedCount > 0 && (
+              <span className="bg-primary text-black text-[9px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {savedCount}
+              </span>
+            )}
+          </button>
+
           {/* [v4.2.0] 현재 모드 표시 */}
           {searchMode === 'keyword' && currentKeyword && (
             <div className="bg-green-500/20 border border-green-500/50 text-green-400 text-[9px] font-black px-3 py-1.5 rounded-full">
@@ -481,13 +512,34 @@ const App = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
                       {aiStrategy.stories?.map((story, sIdx) => (
                         <div key={sIdx} className="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col h-full hover:border-primary/30 transition-all group shadow-xl relative">
-                          <button 
-                            onClick={() => handleCopy(story, sIdx)}
-                            className="absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-primary transition-colors z-20"
-                            title="전략 복사"
-                          >
-                            {copiedId === sIdx ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                          </button>
+                          {/* [v4.4.0] Copy + Save 버튼 */}
+                          <div className="absolute top-4 right-4 flex items-center gap-1 z-20">
+                            <button
+                              onClick={() => handleCopy(story, sIdx)}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-primary transition-colors"
+                              title="전략 복사"
+                            >
+                              {copiedId === sIdx ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                            </button>
+                            <button
+                              onClick={() => handleSaveAngle(story, sIdx)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isAngleSaved(story)
+                                  ? 'bg-primary/20 text-primary cursor-default'
+                                  : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-primary'
+                              }`}
+                              title={isAngleSaved(story) ? "이미 저장됨" : "저장하기"}
+                              disabled={isAngleSaved(story)}
+                            >
+                              {savedId === sIdx ? (
+                                <BookmarkCheck size={14} className="text-green-400" />
+                              ) : isAngleSaved(story) ? (
+                                <BookmarkCheck size={14} />
+                              ) : (
+                                <Bookmark size={14} />
+                              )}
+                            </button>
+                          </div>
 
                           <div className="flex items-center justify-between mb-3">
                             <span className="text-[8px] font-black bg-primary/20 text-primary px-2 py-0.5 rounded uppercase tracking-tighter">
@@ -610,6 +662,15 @@ const App = () => {
           <VideoList videos={filteredVideos} />
         </div>
       </main>
+
+      {/* [v4.4.0] Saved Angles Side Panel */}
+      <SavedAnglesPanel
+        isOpen={savedAnglesPanelOpen}
+        onClose={() => setSavedAnglesPanelOpen(false)}
+        savedAngles={savedAngles}
+        onDelete={deleteAngle}
+        onClearAll={clearAllAngles}
+      />
     </div>
   );
 };
