@@ -417,7 +417,7 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
           ? 'top 50 rankings'
           : `rankings ${rankRange}`;
 
-      const prompt = `You are a YouTube Content Strategist creating slide-based video production guides.
+      const prompt = `You are a World-Class YouTube Trend Analyst and Slide-Based Educational Content Strategist specializing in creating comprehensive slide lecture videos that investigate YouTube trends and derive actionable insights.
 
       ANALYSIS CONTEXT:
       - Countries: ${countriesInfo}
@@ -428,103 +428,150 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       TREND DATA (${filteredVideos.length} videos):
       ${JSON.stringify(sampleData, null, 2)}
 
+      YOUR MISSION:
+      Analyze the provided YouTube trending video data to identify key phenomena, patterns, and insights. Create 6 distinct storytelling strategies (angles) for slide-based educational videos that investigate these trends and present findings in a lecture-style format.
+
       INSTRUCTIONS:
 
       1. MONTHLY TREND INSIGHT (overall_strategy):
          - Start with "이번 달 트렌드 핵심:"
-         - Write 3-4 sentences summarizing key trends
+         - Investigate the trends: What phenomena are emerging? What patterns do you observe?
+         - Derive insights: What do these trends tell us about audience preferences, content evolution, or market shifts?
+         - Write 4-5 comprehensive sentences that synthesize your investigation and insights
 
-      2. 6 STORYTELLING ANGLES:
-         - Angle 1: Documentary/Investigative (심층 취재형)
-         - Angle 2: Review/Analysis/Critical (리뷰/분석형)
-         - Angle 3: Entertainment/Challenge (엔터테인먼트형)
-         - Angle 4: Educational/Tutorial (교육/튜토리얼형)
-         - Angle 5: Personal Story/Vlog (개인 스토리형)
-         - Angle 6: Creative/Experimental (크리에이티브형)
+      2. 6 DIVERSE STORYTELLING ANGLES (Each must be completely different in approach):
+         - Angle 1: Documentary/Investigative (심층 취재형) - Deep investigation into trend phenomena
+         - Angle 2: Review/Analysis/Critical (리뷰/분석형) - Critical analysis and evaluation of trends
+         - Angle 3: Entertainment/Challenge (엔터테인먼트형) - Entertaining exploration of trends
+         - Angle 4: Educational/Tutorial (교육/튜토리얼형) - Educational breakdown of trend mechanics
+         - Angle 5: Personal Story/Vlog (개인 스토리형) - Personal narrative connecting to trends
+         - Angle 6: Creative/Experimental (크리에이티브형) - Creative and experimental approach to trends
 
-      3. FOR EACH ANGLE provide:
+      3. FOR EACH ANGLE, provide EXACTLY 15 SLIDES structured as follows:
+         - Slides 1-2: Introduction & Hook
+           * Slide 1: Opening hook with compelling question or statement about the trend
+           * Slide 2: Overview of what will be investigated in this video
+         
+         - Slides 3-5: Trend Phenomenon Investigation
+           * Slide 3: First key trend phenomenon identified from data
+           * Slide 4: Second key trend phenomenon identified from data
+           * Slide 5: Third key trend phenomenon or pattern identified from data
+         
+         - Slides 6-8: Insight Derivation
+           * Slide 6: First major insight derived from the phenomena
+           * Slide 7: Second major insight derived from the phenomena
+           * Slide 8: Third major insight or synthesis of patterns
+         
+         - Slides 9-12: Deep Analysis & Evidence
+           * Slide 9: Detailed analysis of first insight with supporting evidence
+           * Slide 10: Detailed analysis of second insight with supporting evidence
+           * Slide 11: Detailed analysis of third insight with supporting evidence
+           * Slide 12: Cross-pattern analysis or unexpected connections
+         
+         - Slides 13-15: Conclusion & Action Items
+           * Slide 13: Summary of key findings
+           * Slide 14: Implications for content creators or viewers
+           * Slide 15: Call-to-action and engagement prompt
+
+      4. FOR EACH SLIDE, provide:
+         - slide: Slide number and title (e.g., "슬라이드 1: 인트로 - 트렌드의 충격적 사실")
+         - content: Detailed description of what to show/say on this slide (2-3 sentences)
+         - research: Specific research sources, data points, or materials to find for this slide
+
+      5. FOR EACH ANGLE, also provide:
          - angle: Angle name in English
          - title: Video title in【】brackets
-         - concept: ONE sentence summary in Korean
-         - slide_scenario: Array of 5-7 slides for video structure:
-           * slide: Slide title (e.g., "슬라이드 1: 인트로")
-           * content: What to show/say
-           * research: Specific source to find this material
+         - concept: ONE sentence summary in Korean explaining the angle's unique approach
          - key_points: EXACTLY 4 items:
            [0] "🎯 Hook (0-30초): [오프닝 멘트와 장면]"
-           [1] "📈 Watch Time: [클리프행어 타이밍]"
+           [1] "📈 Watch Time: [클리프행어 타이밍 - 구체적 시간과 멘트]"
            [2] "🔄 좋아요 요청: [좋아요 요청 스크립트]"
            [3] "💬 댓글 유도: [구체적 질문]"
 
       Return ONLY JSON:
       {
         "keywords": [{"name": "Keyword", "value": 10-100}],
-        "overall_strategy": "이번 달 트렌드 핵심: (3-4문장)",
+        "overall_strategy": "이번 달 트렌드 핵심: (4-5문장, 현상 조사 및 인사이트 도출 포함)",
         "stories": [
           {
             "angle": "Documentary Deep Dive",
             "title": "【컨텐츠 제목】",
             "concept": "한 줄 전략 설명",
             "slide_scenario": [
-              {"slide": "슬라이드 1: 인트로", "content": "'마인크래프트 10년, 이제 끝인가?' 충격적 질문으로 시작", "research": "Google Trends - 마인크래프트 vs Hytale 검색량"},
-              {"slide": "슬라이드 2: 배경", "content": "Hytale 소개 및 주목받는 이유", "research": "Hytale 공식 트레일러, Wikipedia"},
-              {"slide": "슬라이드 3: 분석", "content": "마인크래프트와 차별점 3가지", "research": "IGN, GameSpot 비교 기사"},
-              {"slide": "슬라이드 4: 반응", "content": "유저들의 기대와 우려", "research": "Reddit r/HytaleInfo 인기글"},
-              {"slide": "슬라이드 5: 결론", "content": "크리에이터에게 미치는 영향", "research": "마크 유튜버 반응 영상"}
+              {"slide": "슬라이드 1: 인트로 - 트렌드의 충격적 사실", "content": "구체적인 내용 설명 (2-3문장)", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 2: 오버뷰", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 3: 첫 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 4: 두 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 5: 세 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 6: 첫 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 7: 두 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 8: 세 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 9: 첫 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 10: 두 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 11: 세 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 12: 패턴 교차 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 13: 핵심 발견 요약", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 14: 크리에이터를 위한 시사점", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 15: 액션 아이템 및 참여 유도", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"}
             ],
             "key_points": [
-              "🎯 Hook (0-30초): '10년 절대왕좌 마인크래프트, 도전자 등장' + 하이라이트 3초",
-              "📈 Watch Time: 4분 '문제가 있습니다...', 8분 '반전'",
-              "🔄 좋아요 요청: '분석 도움 되셨으면 좋아요!'",
-              "💬 댓글 유도: 'Hytale 나오면 마크 떠나실?"
+              "🎯 Hook (0-30초): [오프닝 멘트와 장면]",
+              "📈 Watch Time: [클리프행어 타이밍]",
+              "🔄 좋아요 요청: [좋아요 요청 스크립트]",
+              "💬 댓글 유도: [구체적 질문]"
             ]
           },
           {
             "angle": "Critical Analysis",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [{"slide": "...", "content": "...", "research": "..."}],
+            "slide_scenario": [15 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Entertainment Challenge",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [],
+            "slide_scenario": [15 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Educational Tutorial",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [],
+            "slide_scenario": [15 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Personal Journey",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [],
+            "slide_scenario": [15 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Creative Experiment",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [],
+            "slide_scenario": [15 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           }
         ],
-        "benchmark_indices": [0, 1, 2, 3, 4, 5, 6, 7]
+        "benchmark_indices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
       }
 
-      REQUIREMENTS:
+      CRITICAL REQUIREMENTS:
+      - Each angle MUST have EXACTLY 15 slides (no more, no less)
+      - Each slide MUST have slide number, title, detailed content (2-3 sentences), and specific research source
+      - Slide structure MUST follow: Intro (1-2) → Trend Investigation (3-5) → Insight Derivation (6-8) → Deep Analysis (9-12) → Conclusion (13-15)
+      - All content must be based on actual trend data provided
+      - Each angle must investigate the SAME trends but from completely different perspectives
       - title in【】brackets
       - concept: ONE sentence only
-      - slide_scenario: 5-7 slides with specific research sources per slide
       - key_points: EXACTLY 4 items (🎯, 📈, 🔄, 💬)
       - ALL Korean except keywords/angle
-      - Specific to trend data`;
+      - Extract 40-50 high-value keywords in ENGLISH based on actual video titles, descriptions, and trends
+      - Make each slide scenario detailed, actionable, and research-backed`;
       
       // console.log('[AI Analysis] Sending request to Gemini API...');
       // console.log('[AI Analysis] Prompt length:', prompt.length, 'characters');
