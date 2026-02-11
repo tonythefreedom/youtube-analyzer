@@ -447,31 +447,24 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
          - Angle 5: Personal Story/Vlog (개인 스토리형) - Personal narrative connecting to trends
          - Angle 6: Creative/Experimental (크리에이티브형) - Creative and experimental approach to trends
 
-      3. FOR EACH ANGLE, provide EXACTLY 15 SLIDES structured as follows:
+      3. FOR EACH ANGLE, provide EXACTLY 10 SLIDES structured as follows:
          - Slides 1-2: Introduction & Hook
            * Slide 1: Opening hook with compelling question or statement about the trend
            * Slide 2: Overview of what will be investigated in this video
-         
+
          - Slides 3-5: Trend Phenomenon Investigation
            * Slide 3: First key trend phenomenon identified from data
            * Slide 4: Second key trend phenomenon identified from data
            * Slide 5: Third key trend phenomenon or pattern identified from data
-         
-         - Slides 6-8: Insight Derivation
-           * Slide 6: First major insight derived from the phenomena
-           * Slide 7: Second major insight derived from the phenomena
-           * Slide 8: Third major insight or synthesis of patterns
-         
-         - Slides 9-12: Deep Analysis & Evidence
-           * Slide 9: Detailed analysis of first insight with supporting evidence
-           * Slide 10: Detailed analysis of second insight with supporting evidence
-           * Slide 11: Detailed analysis of third insight with supporting evidence
-           * Slide 12: Cross-pattern analysis or unexpected connections
-         
-         - Slides 13-15: Conclusion & Action Items
-           * Slide 13: Summary of key findings
-           * Slide 14: Implications for content creators or viewers
-           * Slide 15: Call-to-action and engagement prompt
+
+         - Slides 6-8: Insight Derivation & Deep Analysis
+           * Slide 6: First major insight with supporting evidence
+           * Slide 7: Second major insight with supporting evidence
+           * Slide 8: Third major insight or cross-pattern analysis
+
+         - Slides 9-10: Conclusion & Action Items
+           * Slide 9: Summary of key findings and implications
+           * Slide 10: Call-to-action and engagement prompt
 
       4. FOR EACH SLIDE, provide:
          - slide: Slide number and title (e.g., "슬라이드 1: 인트로 - 트렌드의 충격적 사실")
@@ -503,16 +496,11 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
               {"slide": "슬라이드 3: 첫 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
               {"slide": "슬라이드 4: 두 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
               {"slide": "슬라이드 5: 세 번째 트렌드 현상", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 6: 첫 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 7: 두 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 8: 세 번째 인사이트", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 9: 첫 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 10: 두 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 11: 세 번째 인사이트 심화 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 12: 패턴 교차 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 13: 핵심 발견 요약", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 14: 크리에이터를 위한 시사점", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
-              {"slide": "슬라이드 15: 액션 아이템 및 참여 유도", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"}
+              {"slide": "슬라이드 6: 첫 번째 인사이트 및 근거", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 7: 두 번째 인사이트 및 근거", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 8: 세 번째 인사이트 및 교차 분석", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 9: 핵심 발견 요약 및 시사점", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"},
+              {"slide": "슬라이드 10: 액션 아이템 및 참여 유도", "content": "구체적인 내용 설명", "research": "구체적 조사 소스"}
             ],
             "key_points": [
               "🎯 Hook (0-30초): [오프닝 멘트와 장면]",
@@ -525,35 +513,35 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
             "angle": "Critical Analysis",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [15 slides following the same structure],
+            "slide_scenario": [10 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Entertainment Challenge",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [15 slides following the same structure],
+            "slide_scenario": [10 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Educational Tutorial",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [15 slides following the same structure],
+            "slide_scenario": [10 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Personal Journey",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [15 slides following the same structure],
+            "slide_scenario": [10 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           },
           {
             "angle": "Creative Experiment",
             "title": "【...】",
             "concept": "...",
-            "slide_scenario": [15 slides following the same structure],
+            "slide_scenario": [10 slides following the same structure],
             "key_points": ["🎯 ...", "📈 ...", "🔄 ...", "💬 ..."]
           }
         ],
@@ -561,9 +549,9 @@ export const useTrendData = (selectedCountries, enabled = true, contentType = 'l
       }
 
       CRITICAL REQUIREMENTS:
-      - Each angle MUST have EXACTLY 15 slides (no more, no less)
+      - Each angle MUST have EXACTLY 10 slides (no more, no less)
       - Each slide MUST have slide number, title, detailed content (2-3 sentences), and specific research source
-      - Slide structure MUST follow: Intro (1-2) → Trend Investigation (3-5) → Insight Derivation (6-8) → Deep Analysis (9-12) → Conclusion (13-15)
+      - Slide structure MUST follow: Intro (1-2) → Trend Investigation (3-5) → Insight & Analysis (6-8) → Conclusion (9-10)
       - All content must be based on actual trend data provided
       - Each angle must investigate the SAME trends but from completely different perspectives
       - title in【】brackets
